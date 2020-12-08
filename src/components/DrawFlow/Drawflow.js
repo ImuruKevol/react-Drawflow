@@ -1,80 +1,130 @@
-import React from 'react';
-import DrawflowAdditionalArea from './DrawflowAdditionalArea';
-import DrawflowZoomArea from './DrawflowZoomArea';
-import './beautiful.css';
-import './drawflow.css';
+import React from "react";
+import DrawflowAdditionalArea from "./DrawflowAdditionalArea";
+import DrawflowZoomArea from "./DrawflowZoomArea";
+import DrawflowNodeBlock from "./DrawflowNodeBlock";
+import Nodes from "./Nodes";
+import "./beautiful.css";
+import "./drawflow.css";
+import dummy from "./dummy";
 
 class Drawflow extends React.Component {
     constructor () {
         super();
         this.state = {
-            nodeList: [
-                {label: "Facebook", value: "Facebook"},
-                {label: "Slack message", value: "Slack message"},
-                {label: "Github Star", value: "Github Star"},
-                {label: "AWS", value: "AWS"},
-                {label: "File Log", value: "File Log"},
-                {label: "Email send", value: "Email send"},
-                {label: "Template", value: "Template"},
-            ],
+            nodeList: [],
+            nodeBlockList: {},  // {component, params}
             events: {},
-            container: document.querySelector("#drawflow"), // 제거 필요
-            precanvas: null,
             nodeId: 1,
             ele_selected: null,
             node_selected: null,
             drag: false,
+
             reroute: false,
             reroute_fix_curvature: false,
             curvature: 0.5,
             reroute_curvature_start_end: 0.5,
             reroute_curvature: 0.5,
             reroute_width: 6,
+
             drag_point: false,
+
             editor_selected: false,
+
             connection: false,
             connection_ele: null,
             connection_selected: null,
+
             canvas_x: 0,
             canvas_y: 0,
+
             pos_x: 0,
             pos_x_start: 0,
             pos_y: 0,
             pos_y_start: 0,
+
             mouse_x: 0,
             mouse_y: 0,
+            
             line_path: 5,
             first_click: null,
             force_first_input: false,
             draggable_inputs: true,
-
             select_elements: null,
-            noderegister: {},
-            render: null,
-            drawflow: { "drawflow": { "Home": { "data": {} }}},
-
-            module: 'Home',
-            editor_mode: false,    //editorLock로 바꾸거나 할 것
-            zoom: 1,
-            zoom_max: 1.6,
-            zoom_min: 0.5,
-            zoom_value: 0.1,
-            zoom_last_value: 1,
+            drawflow: {},
+            editLock: false,
+            zoom: {
+                value: 1,
+                max: 2,
+                min: 0.5,
+                tick: 0.1,
+                lastValue: 1,
+            }
         }
+        this.state.nodeList = Object.entries(Nodes).reduce((acc, val) => {
+            acc.push({
+                label: val[0],
+                component: val[1],
+            });
+            return acc;
+        }, []);
     }
 
-    drag = (e, data) => {
-        e.dataTransfer.setData("node", data);
+    drag = (e, idx) => {
+        e.dataTransfer.setData("componentIndex", idx);
     }
 
     drop = (e) => {
         e.preventDefault();
-        const data = e.dataTransfer.getData("node");
-        this.addNodeToDrawFlow(data, e.clientX, e.clientY);
+        const componentIndex = e.dataTransfer.getData("componentIndex");
+        this.addNodeToDrawFlow(componentIndex, e.clientX, e.clientY);
     }
 
-    addNodeToDrawFlow = (name, x, y) => {
-        
+    /**
+     * create and add node
+     * @param {ReactElement} componentIndex component name
+     * @param {{in: Number, out: Number}} port 
+     * @param {{x: Number, y: Number }} pos 
+     * @param {{}} data 
+     */
+    addNode = (componentIndex, port, pos, data = {}) => {
+        // setState({nodeId, drawflow}) add a params(or other key)
+        const { nodeId } = this.state;
+        const params = {
+            nodeId,
+            port,
+            pos,
+            data,
+        };
+        console.debug(params);
+        this.setState({
+            nodeBlockList: {
+                ...this.state.nodeBlockList,
+                [nodeId]: {
+                    component: this.state.nodeList[componentIndex].component,
+                    params,
+                }
+            },
+            nodeId: nodeId + 1,
+        }, () => {
+            console.dir(this.state.nodeBlockList)
+            console.dir(this.state.nodeId)
+        });
+    }
+
+    addNodeToDrawFlow = (componentIndex, x, y) => {
+        if(this.state.editLock) return;
+        // TODO: replace querySelector to something.
+        const canvas = document.querySelector("#drawflow").querySelector(".drawflow");
+        const cw = canvas.clientWidth;
+        const ch = canvas.clientHeight;
+        const zoom = this.state.zoom.value;
+        const pos = {
+            x: x * ( cw / (cw * zoom)) - (canvas.getBoundingClientRect().x * ( cw / (cw * zoom))),
+            y: y * ( ch / (ch * zoom)) - (canvas.getBoundingClientRect().y * ( ch / (ch * zoom))),
+        }
+        console.debug("drop position");
+        console.debug(pos);
+        this.addNode(componentIndex, {in: 1, out: 1}, pos);
     }
 
     addNodeImport = () => {
@@ -90,23 +140,29 @@ class Drawflow extends React.Component {
     }
 
     load = () => {
-        if(!this.state.drawflow || !this.state.drawflow.data) return;
-        const dataEntries = Object.entries(this.state.drawflow.data);
-        // 합치면 안되나? test해볼 것
+        const { drawflow } = this.state;
+        const dataEntries = Object.entries(drawflow);
+        
         for(const [key, data] of dataEntries) {
             this.addNodeImport(data);
-        }
-        if(this.state.reroute) {
-            for(const [key, data] of dataEntries) {
+            if(this.state.reroute) {
                 this.addRerouteImport(data);
             }
+            this.updateConnectionNodes("node-" + key);
         }
-        for(const [key, data] of dataEntries) {
-            this.updateConnectionNodes('node-' + key);
-        }
+        // for(const [key, data] of dataEntries) {
+        //     this.addNodeImport(data);
+        // }
+        // if(this.state.reroute) {
+        //     for(const [key, data] of dataEntries) {
+        //         this.addRerouteImport(data);
+        //     }
+        // }
+        // for(const [key, data] of dataEntries) {
+        //     this.updateConnectionNodes("node-" + key);
+        // }
 
-        const editor = this.state.drawflow;
-        const dataKeys = Object.keys(editor.data).map(key => key*1).sort();
+        const dataKeys = Object.keys(drawflow).map(key => key*1).sort();
         if(dataKeys.length > 0) {
             this.setState({
                 nodeId: dataKeys.slice(-1) + 1,
@@ -133,7 +189,7 @@ class Drawflow extends React.Component {
     componentDidMount() {
         this.setState({
             reroute: true,
-            drawflow: {},
+            // drawflow: dummy,
         }, () => {
             this.load();
         });
@@ -153,7 +209,7 @@ class Drawflow extends React.Component {
                         key={"drawflow-node-" + idx}
                         draggable
                         onDragStart={e => {
-                            this.drag(e, node.value);
+                            this.drag(e, idx);
                         }}
                     >
                         <span>{node.label}</span>
@@ -171,7 +227,7 @@ class Drawflow extends React.Component {
                             clear={this.clear}
                             setEditorMode={(lock) => {
                                 this.setState({
-                                    editor_mode: lock,
+                                    editLock: lock,
                                 })
                             }}
                         />
@@ -191,7 +247,14 @@ class Drawflow extends React.Component {
                             onInput={e => {}}
                             onDoubleClick={e => {}}
                         >
-
+                            {Object.entries(this.state.nodeBlockList).map((item, idx) => 
+                            <DrawflowNodeBlock
+                                key={"drawflow-node-block-" + idx}
+                                NodeContent={item[1].component}
+                                params={item[1].params}
+                                // blockType="common"
+                            />
+                            )}
                         </div>
                     </div>
                 </div>

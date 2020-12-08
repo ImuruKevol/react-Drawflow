@@ -27,15 +27,24 @@ const DrawflowNodeBlock = ({
     }
 
     return (
-    <div className={"parent-node drawflow-node-block-" + blockType}>
+    /*
+    div.parent-node(change drawflow-node-block-${blockType})
+        div#node-${num}.drawflow-node.facebook style{위치}          // 굳이 div를 2중으로 써야할까?
+            div.inputs
+            div.drawflow_content_node
+                div {content}       // 굳이? or NodeContent?
+            div.outputs
+    */
+   // class Overriding(style), handler overriding(action)
+    <div className={"drawflow-node-block-" + blockType}>
         {portComponent("in")}
-        {portComponent("out")}
         <NodeContent
             id={"node-" + params.nodeId}
             // addNode 함수 참고하고 live demo 참고하여 class tree 구조 잡기
             className="drawflow-node"
             {...params}
         />
+        {portComponent("out")}
     </div>
     );
 }

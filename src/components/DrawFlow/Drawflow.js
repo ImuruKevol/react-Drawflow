@@ -105,9 +105,6 @@ class Drawflow extends React.Component {
                 }
             },
             nodeId: nodeId + 1,
-        }, () => {
-            console.dir(this.state.nodeBlockList)
-            console.dir(this.state.nodeId)
         });
     }
 

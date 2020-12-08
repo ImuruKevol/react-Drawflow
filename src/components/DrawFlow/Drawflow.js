@@ -1,4 +1,8 @@
 import React from 'react';
+import DrawflowAdditionalArea from './DrawflowAdditionalArea';
+import DrawflowZoomArea from './DrawflowZoomArea';
+import './beautiful.css';
+import './drawflow.css';
 
 class Drawflow extends React.Component {
     constructor () {
@@ -6,7 +10,7 @@ class Drawflow extends React.Component {
         this.state = {
             nodeList: [
                 {label: "Facebook", value: "Facebook"},
-                {label: "Slack receive message", value: "Slack receive message"},
+                {label: "Slack message", value: "Slack message"},
                 {label: "Github Star", value: "Github Star"},
                 {label: "AWS", value: "AWS"},
                 {label: "File Log", value: "File Log"},
@@ -50,7 +54,7 @@ class Drawflow extends React.Component {
             drawflow: { "drawflow": { "Home": { "data": {} }}},
 
             module: 'Home',
-            editor_mode: 'edit',
+            editor_mode: false,    //editorLock로 바꾸거나 할 것
             zoom: 1,
             zoom_max: 1.6,
             zoom_min: 0.5,
@@ -86,6 +90,7 @@ class Drawflow extends React.Component {
     }
 
     load = () => {
+        if(!this.state.drawflow || !this.state.drawflow.data) return;
         const dataEntries = Object.entries(this.state.drawflow.data);
         // 합치면 안되나? test해볼 것
         for(const [key, data] of dataEntries) {
@@ -109,6 +114,22 @@ class Drawflow extends React.Component {
         }
     }
 
+    clear = () => {
+
+    }
+
+    zoom = {
+        in() {
+
+        },
+        out() {
+
+        },
+        reset() {
+
+        },
+    }
+
     componentDidMount() {
         this.setState({
             reroute: true,
@@ -120,17 +141,16 @@ class Drawflow extends React.Component {
 
     render () {
         return (
-        <div>
+        <div className="drawflow-container">
             <header>
-                <h2>
-                    Drawflow
-                </h2>
+                <h2>Drawflow</h2>
             </header>
             <div className="drawflow-wrapper">
                 <div className="drawflow-node-list">
-                    {this.state.nodeList.map(node =>
+                    {this.state.nodeList.map((node, idx) =>
                     <div
-                        className="drag-drawflow"
+                        className="drawflow-node-block"
+                        key={"drawflow-node-" + idx}
                         draggable
                         onDragStart={e => {
                             this.drag(e, node.value);
@@ -146,6 +166,20 @@ class Drawflow extends React.Component {
                         onDrop={this.drop}
                         onDragOver={e => {e.preventDefault()}}
                     >
+                        <DrawflowAdditionalArea
+                            drawflow={this.state.drawflow}
+                            clear={this.clear}
+                            setEditorMode={(lock) => {
+                                this.setState({
+                                    editor_mode: lock,
+                                })
+                            }}
+                        />
+                        <DrawflowZoomArea
+                            zoomIn={this.zoom.in}
+                            zoomOut={this.zoom.out}
+                            zoomReset={this.zoom.reset}
+                        />
                         <div
                             className="drawflow"
                             onMouseUp={e => {}}

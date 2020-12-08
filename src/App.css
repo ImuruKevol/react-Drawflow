@@ -1,6 +1,10 @@
+* {
+  box-sizing: border-box;
+}
+
 .App {
-  width: 600px;
-  height: 400px;
+  width: 850px;
+  height: 600px;
   margin: 0 auto;
   padding-top: 100px;
 }

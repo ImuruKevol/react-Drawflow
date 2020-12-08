@@ -19,173 +19,89 @@ header {
   border-bottom: 1px solid var(--border-color);
   padding-left: 20px;
 }
+
 header h2 {
   margin: 0px;
   line-height: 66px;
 }
-header a {
-  color: black;
-}
-.them-edit-link {
-  position: absolute;
-  top: 10px;
-  right: 100px;
-  color: black;
-  font-size: 40px;
-}
-.them-edit-link a {
-  text-decoration: none;
+
+button {
+  cursor: pointer;
 }
 
-.github-link{
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  color: black;
+.drawflow-container {
+  height: 100%;
 }
 
-.wrapper {
+.drawflow-wrapper {
   width: 100%;
-  height: calc(100vh - 67px);
+  height: calc(100% - 67px);
   display: flex;
 }
 
-.col {
+.drawflow-node-list {
   overflow: auto;
-  width: 300px;
+  width: 180px;
   height: 100%;
   border-right: 1px solid var(--border-color);
 }
 
-.drag-drawflow {
+.drawflow-node-block {
   line-height: 50px;
   border-bottom: 1px solid var(--border-color);
   padding-left: 20px;
   cursor: move;
   user-select: none;
 }
-.menu {
+
+.drawflow-additional {
+  float: right;
   position: absolute;
-  height: 40px;
-  display: block;
-  background: white;
+  top: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  background-color: #ddd;
+  font-weight: bold;
+  z-index: 10;
+}
+
+.drawflow-additional .drawflow-additional-button {
+  background-color: #333;
+  color: #fff;
+  border-radius: 4px;
+}
+
+.drawflow-zoom {
+  float: right;
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  background-color: #ddd;
+  font-weight: bold;
+  z-index: 10;
+}
+
+.drawflow-zoom-button {
+  background-color: #333;
+  color: #fff;
+  border-radius: 4px;
+}
+
+.drawflow-main {
   width: 100%;
-}
-.menu ul {
-  padding: 0px;
-  margin: 0px;
-  line-height: 40px;
-}
-
-.menu ul li {
-  display: inline-block;
-margin-left: 10px;
-border-right: 1px solid var(--border-color);
-padding-right: 10px;
-line-height: 40px;
-cursor: pointer;
-}
-
-.menu ul li.selected {
-  font-weight: bold;
-}
-
-.btn-export {
-  float: right;
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  color: white;
-  font-weight: bold;
-  border: 1px solid #0e5ba3;
-  background: #4ea9ff;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  z-index: 5;
-}
-
-.btn-clear {
-  float: right;
-  position: absolute;
-  top: 10px;
-  right: 85px;
-  color: white;
-  font-weight: bold;
-  border: 1px solid #96015b;
-  background: #e3195a;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  z-index: 5;
-}
-.swal-wide{
-    width:80% !important;
-}
-
-.btn-lock {
-  float: right;
-  position: absolute;
-  bottom: 10px;
-  right: 140px;
-  display: flex;
-  font-size: 24px;
-  color: white;
-  padding: 5px 10px;
-  background: #555555;
-  border-radius: 4px;
-  border-right: 1px solid var(--border-color);
-  z-index: 5;
-  cursor: pointer;
-}
-
-.bar-zoom {
-  float: right;
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  display: flex;
-  font-size: 24px;
-  color: white;
-  padding: 5px 10px;
-  background: #555555;
-  border-radius: 4px;
-  border-right: 1px solid var(--border-color);
-  z-index: 5;
-}
-.bar-zoom svg {
-  cursor: pointer;
-  padding-left: 10px;
-}
-.bar-zoom svg:nth-child(1) {
-  padding-left: 0px;
 }
 
 #drawflow {
   position: relative;
-  width: calc(100vw - 301px);
-  height: calc(100% - 50px);
-  top: 40px;
+  width: 100%;
+  height: 100%;
   background: var(--background-color);
   background-size: 25px 25px;
   background-image:
    linear-gradient(to right, #f1f1f1 1px, transparent 1px),
    linear-gradient(to bottom, #f1f1f1 1px, transparent 1px);
 }
-
-@media only screen and (max-width: 768px) {
-  .col {
-    width: 50px;
-  }
-  .col .drag-drawflow span {
-    display:none;
-  }
-  #drawflow {
-    width: calc(100vw - 51px);
-  }
-}
-
-
 
 /* Editing Drawflow */
 

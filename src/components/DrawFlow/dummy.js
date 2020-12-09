@@ -10,7 +10,12 @@ const dummy = {
       "connections": {
         "inputs": {
           "input_1": {
-            "connections": []
+            "connections": [
+                {
+                    "node": "2",
+                    "input": "output_1"
+                }
+            ]
           }
         },
         "outputs": {
@@ -40,7 +45,12 @@ const dummy = {
         },
         "outputs": {
           "output_1": {
-            "connections": []
+            "connections": [
+                {
+                    "node": "2",
+                    "output": "input_1"
+                }
+            ]
           }
         }
       },

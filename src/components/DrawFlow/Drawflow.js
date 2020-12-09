@@ -178,7 +178,6 @@ class Drawflow extends React.Component {
         
         let drawflow = {};
         for(const [nodeId, params] of dataEntries) {
-            // TODO: 모아서 한 번에 import
             drawflow[nodeId] = this.makeNodeObject(params);
             if(this.state.reroute) {
                 this.addRerouteImport(params);

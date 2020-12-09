@@ -103,6 +103,38 @@ button {
    linear-gradient(to bottom, #f1f1f1 1px, transparent 1px);
 }
 
+.drawflow-node-block-common {
+  display: inline-block;
+  padding: 10px 15px;
+  border: 1px solid black;
+  display: flex;
+  align-items: center;
+}
+
+.drawflow-main #drawflow .drawflow .inputs .input,
+.drawflow-main #drawflow .drawflow .outputs .output {
+  height: 15px;
+  width: 15px;
+  border: 2px solid var(--border-color);
+}
+
+.drawflow-main #drawflow .drawflow .inputs .input:hover,
+.drawflow-main #drawflow .drawflow .outputs .output:hover {
+  background: #4ea9ff;
+}
+
+.drawflow-main #drawflow .drawflow .inputs {
+  position: absolute;
+  left: -8px;
+  background-color: #777;
+}
+
+.drawflow-main #drawflow .drawflow .outputs {
+  position: absolute;
+  right: -8px;
+  background-color: #777;
+}
+
 /* Editing Drawflow */
 
 .drawflow .drawflow-node {

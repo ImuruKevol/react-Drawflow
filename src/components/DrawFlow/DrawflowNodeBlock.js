@@ -5,12 +5,20 @@ const DrawflowNodeBlock = ({
     params,
     blockType = "common",
 }) => {
-    // params: {nodeId, port, pos, data}
+    // params: {nodeId, label, port, pos, data}
     // port: {in: Number, out: Number}
     // pos:  {x: Number, y: Number }
-    // const [data, setData] = useState({});
-    let data = {};
 
+    /**
+     * blockType
+     * - common
+     * - custom(naming is free, but need possible className)
+     */
+
+    let data = {};
+    // const [data, setData] = useState({});
+
+    // input port, output port coponent
     const portComponent = (type) => {
         let arr = [];
         data[`${type}put`] = {};
@@ -29,21 +37,30 @@ const DrawflowNodeBlock = ({
     return (
     /*
     div.parent-node(change drawflow-node-block-${blockType})
-        div#node-${num}.drawflow-node.facebook style{위치}          // 굳이 div를 2중으로 써야할까?
+        div#node-${num}.drawflow-node.facebook style{위치}          // 부모와 통합
             div.inputs
             div.drawflow_content_node
-                div {content}       // 굳이? or NodeContent?
+                div {content}       // 굳이? or NodeContent?        // 부모와 통합
             div.outputs
     */
-   // class Overriding(style), handler overriding(action)
-    <div className={"drawflow-node-block-" + blockType}>
+   // TODO: handler overriding(action)
+   // If you want, change styled component. My case is not supported styled component...
+    <div
+        className={`drawflow-node-block-${blockType} ${params.label.replace(/\s/g, "").toLowerCase()}`}
+        style={{
+            position: "absolute",
+            top: params.pos.y + "px",
+            left: params.pos.x + "px",
+        }}
+    >
         {portComponent("in")}
-        <NodeContent
-            id={"node-" + params.nodeId}
-            // addNode 함수 참고하고 live demo 참고하여 class tree 구조 잡기
-            className="drawflow-node"
-            {...params}
-        />
+        <div
+            className="drawflow-node-content"
+        >
+            <NodeContent
+                {...params}
+            />
+        </div>
         {portComponent("out")}
     </div>
     );

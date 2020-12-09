@@ -89,8 +89,10 @@ class Drawflow extends React.Component {
     addNode = (componentIndex, port, pos, data = {}) => {
         // setState({nodeId, drawflow}) add a params(or other key)
         const { nodeId } = this.state;
+        const { label } = this.state.nodeList[componentIndex];
         const params = {
             nodeId,
+            label,
             port,
             pos,
             data,

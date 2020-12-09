@@ -1,6 +1,7 @@
 import React from 'react';
 
-const Collector = () => {
+const Collector = (props) => {
+    const {  } = props;
     return (<>Collector</>);
 }
 

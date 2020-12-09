@@ -1,174 +1,154 @@
 const dummy = {
     "1": {
-        "id": 1,
-        "name": "welcome",
-        "data": {},
-        "class": "welcome",
-        "html": "\n    <div>\n      <div class=\"title-box\">👏 Welcome!!</div>\n      <div class=\"box\">\n        <p>Simple flow library <b>demo</b>\n        <a href=\"https://github.com/jerosoler/Drawflow\" target=\"_blank\">Drawflow</a> by <b>Jero Soler</b></p><br>\n\n        <p>Multiple input / outputs<br>\n           Data sync nodes<br>\n           Import / export<br>\n           Modules support<br>\n           Simple use<br>\n           Type: Fixed or Edit<br>\n           Events: view console<br>\n           Pure Javascript<br>\n        </p>\n        <br>\n        <p><b><u>Shortkeys:</u></b></p>\n        <p>🎹 <b>Delete</b> for remove selected<br>\n        💠 Mouse Left Click == Move<br>\n        ❌ Mouse Right == Delete Option<br>\n        🔍 Ctrl + Wheel == Zoom<br>\n        📱 Mobile support<br>\n        ...</p>\n      </div>\n    </div>\n    ",
-        "typenode": false,
-        "inputs": {},
-        "outputs": {},
-        "pos_x": 50,
-        "pos_y": 50
+      "id": 1,
+      "type": "Collector",
+      "data": {},
+      "port": {
+        "in": 1,
+        "out": 1
+      },
+      "connections": {
+        "inputs": {
+          "input_1": {
+            "connections": []
+          }
+        },
+        "outputs": {
+          "output_1": {
+            "connections": []
+          }
+        }
+      },
+      "pos": {
+        "x": 90.3125,
+        "y": 32
+      }
     },
     "2": {
-        "id": 2,
-        "name": "slack",
-        "data": {},
-        "class": "slack",
-        "html": "\n          <div>\n            <div class=\"title-box\"><i class=\"fab fa-slack\"></i> Slack chat message</div>\n          </div>\n          ",
-        "typenode": false,
+      "id": 2,
+      "type": "Device",
+      "data": {},
+      "port": {
+        "in": 1,
+        "out": 1
+      },
+      "connections": {
         "inputs": {
-        "input_1": {
-            "connections": [{
-            "node": "7",
-            "input": "output_1"
-            }]
-        }
+          "input_1": {
+            "connections": []
+          }
         },
-        "outputs": {},
-        "pos_x": 1028,
-        "pos_y": 87
+        "outputs": {
+          "output_1": {
+            "connections": []
+          }
+        }
+      },
+      "pos": {
+        "x": 218.3125,
+        "y": 123
+      }
     },
     "3": {
-        "id": 3,
-        "name": "telegram",
-        "data": {
-        "channel": "channel_2"
-        },
-        "class": "telegram",
-        "html": "\n          <div>\n            <div class=\"title-box\"><i class=\"fab fa-telegram-plane\"></i> Telegram bot</div>\n            <div class=\"box\">\n              <p>Send to telegram</p>\n              <p>select channel</p>\n              <select df-channel>\n                <option value=\"channel_1\">Channel 1</option>\n                <option value=\"channel_2\">Channel 2</option>\n                <option value=\"channel_3\">Channel 3</option>\n                <option value=\"channel_4\">Channel 4</option>\n              </select>\n            </div>\n          </div>\n          ",
-        "typenode": false,
+      "id": 3,
+      "type": "Destination",
+      "data": {},
+      "port": {
+        "in": 1,
+        "out": 1
+      },
+      "connections": {
         "inputs": {
-        "input_1": {
-            "connections": [{
-            "node": "7",
-            "input": "output_1"
-            }]
-        }
+          "input_1": {
+            "connections": []
+          }
         },
-        "outputs": {},
-        "pos_x": 1032,
-        "pos_y": 184
+        "outputs": {
+          "output_1": {
+            "connections": []
+          }
+        }
+      },
+      "pos": {
+        "x": 99.3125,
+        "y": 203
+      }
     },
     "4": {
-        "id": 4,
-        "name": "email",
-        "data": {},
-        "class": "email",
-        "html": "\n            <div>\n              <div class=\"title-box\"><i class=\"fas fa-at\"></i> Send Email </div>\n            </div>\n            ",
-        "typenode": false,
+      "id": 4,
+      "type": "DeviceCustom",
+      "data": {},
+      "port": {
+        "in": 1,
+        "out": 1
+      },
+      "connections": {
         "inputs": {
-        "input_1": {
-            "connections": [{
-            "node": "5",
-            "input": "output_1"
-            }]
-        }
+          "input_1": {
+            "connections": []
+          }
         },
-        "outputs": {},
-        "pos_x": 1033,
-        "pos_y": 439
+        "outputs": {
+          "output_1": {
+            "connections": []
+          }
+        }
+      },
+      "pos": {
+        "x": 404.3125,
+        "y": 41
+      }
     },
     "5": {
-        "id": 5,
-        "name": "template",
-        "data": {
-        "template": "Write your template"
-        },
-        "class": "template",
-        "html": "\n            <div>\n              <div class=\"title-box\"><i class=\"fas fa-code\"></i> Template</div>\n              <div class=\"box\">\n                Ger Vars\n                <textarea df-template></textarea>\n                Output template with vars\n              </div>\n            </div>\n            ",
-        "typenode": false,
+      "id": 5,
+      "type": "Event",
+      "data": {},
+      "port": {
+        "in": 1,
+        "out": 1
+      },
+      "connections": {
         "inputs": {
-        "input_1": {
-            "connections": [{
-            "node": "6",
-            "input": "output_1"
-            }]
-        }
+          "input_1": {
+            "connections": []
+          }
         },
         "outputs": {
-        "output_1": {
-            "connections": [{
-            "node": "4",
-            "output": "input_1"
-            }, {
-            "node": "11",
-            "output": "input_1"
-            }]
+          "output_1": {
+            "connections": []
+          }
         }
-        },
-        "pos_x": 607,
-        "pos_y": 304
+      },
+      "pos": {
+        "x": 364.3125,
+        "y": 226
+      }
     },
     "6": {
-        "id": 6,
-        "name": "github",
-        "data": {
-        "name": "https://github.com/jerosoler/Drawflow"
-        },
-        "class": "github",
-        "html": "\n          <div>\n            <div class=\"title-box\"><i class=\"fab fa-github \"></i> Github Stars</div>\n            <div class=\"box\">\n              <p>Enter repository url</p>\n            <input type=\"text\" df-name>\n            </div>\n          </div>\n          ",
-        "typenode": false,
-        "inputs": {},
-        "outputs": {
-        "output_1": {
-            "connections": [{
-            "node": "5",
-            "output": "input_1"
-            }]
-        }
-        },
-        "pos_x": 341,
-        "pos_y": 191
-    },
-    "7": {
-        "id": 7,
-        "name": "facebook",
-        "data": {},
-        "class": "facebook",
-        "html": "\n        <div>\n          <div class=\"title-box\"><i class=\"fab fa-facebook\"></i> Facebook Message</div>\n        </div>\n        ",
-        "typenode": false,
-        "inputs": {},
-        "outputs": {
-        "output_1": {
-            "connections": [{
-            "node": "2",
-            "output": "input_1"
-            }, {
-            "node": "3",
-            "output": "input_1"
-            }, {
-            "node": "11",
-            "output": "input_1"
-            }]
-        }
-        },
-        "pos_x": 347,
-        "pos_y": 87
-    },
-    "11": {
-        "id": 11,
-        "name": "log",
-        "data": {},
-        "class": "log",
-        "html": "\n            <div>\n              <div class=\"title-box\"><i class=\"fas fa-file-signature\"></i> Save log file </div>\n            </div>\n            ",
-        "typenode": false,
+      "id": 6,
+      "type": "Source",
+      "data": {},
+      "port": {
+        "in": 1,
+        "out": 1
+      },
+      "connections": {
         "inputs": {
-        "input_1": {
-            "connections": [{
-            "node": "5",
-            "input": "output_1"
-            }, {
-            "node": "7",
-            "input": "output_1"
-            }]
-        }
+          "input_1": {
+            "connections": []
+          }
         },
-        "outputs": {},
-        "pos_x": 1031,
-        "pos_y": 363
+        "outputs": {
+          "output_1": {
+            "connections": []
+          }
+        }
+      },
+      "pos": {
+        "x": 447.3125,
+        "y": 117
+      }
     }
-}
+  };
 
 export default dummy;

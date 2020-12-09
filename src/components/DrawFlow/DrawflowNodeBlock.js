@@ -8,7 +8,7 @@ const DrawflowNodeBlock = ({
     // params
     // {
     //     id: nodeId,
-    //     name: label,
+    //     type: type,
     //     data: data,
     //     port: {in: Number, out: Number}
     //     connections: {
@@ -54,7 +54,7 @@ const DrawflowNodeBlock = ({
    // TODO: handler overriding(action)
    // If you want, change styled component. My case is not supported styled component...
     <div
-        className={`drawflow-node-block-${blockType} ${params.name.replace(/\s/g, "").toLowerCase()}`}
+        className={`drawflow-node-block-${blockType} ${params.type.replace(/\s/g, "").toLowerCase()}`}
         style={{
             position: "absolute",
             top: params.pos.y + "px",

@@ -18,7 +18,7 @@ class Drawflow extends React.Component {
             node_selected: null,
             drag: false,
 
-            reroute: false,
+            reroute:true,
             reroute_fix_curvature: false,
             curvature: 0.5,
             reroute_curvature_start_end: 0.5,
@@ -61,7 +61,7 @@ class Drawflow extends React.Component {
         }
         this.state.nodeList = Object.entries(Nodes).reduce((acc, val) => {
             acc.push({
-                label: val[0],
+                type: val[0],
                 component: val[1],
             });
             return acc;
@@ -103,7 +103,6 @@ class Drawflow extends React.Component {
                     params,
                 }),
             },
-            nodeId: nodeId + 1,
         });
     }
 
@@ -116,10 +115,10 @@ class Drawflow extends React.Component {
      */
     addNode = (componentIndex, port, pos, data = {}) => {
         const { nodeId } = this.state;
-        const { label } = this.state.nodeList[componentIndex];
+        const { type } = this.state.nodeList[componentIndex];
         const params = {
             id: nodeId,
-            name: label,
+            type,
             data,
             port,
             connections: this.makePortObj(port),
@@ -128,8 +127,10 @@ class Drawflow extends React.Component {
                 y: pos.y,
             },
         };
-        const { component } = this.state.nodeList[componentIndex];
         this.setDrawflow(nodeId, componentIndex, params);
+        this.setState({
+            nodeId: nodeId + 1,
+        })
     }
 
     addNodeToDrawFlow = (componentIndex, x, y) => {
@@ -145,11 +146,23 @@ class Drawflow extends React.Component {
         }
         console.debug("drop position");
         console.debug(pos);
+        // TODO: in, out -> Number to Boolean?
         this.addNode(componentIndex, {in: 1, out: 1}, pos);
     }
 
-    addNodeImport = () => {
-
+    makeNodeObject = (params) => {
+        let componentIndex = 0;
+        for(let i=0;i<this.state.nodeList.length;i++) {
+            if(this.state.nodeList[i].type === params.type) {
+                componentIndex = i;
+                break;
+            }
+        }
+        // console.log(nodeId, componentIndex, params);
+        return {
+            componentIndex,
+            params,
+        };
     }
 
     addRerouteImport = () => {
@@ -160,35 +173,40 @@ class Drawflow extends React.Component {
 
     }
 
-    load = () => {
-        const { drawflow } = this.state;
-        const dataEntries = Object.entries(drawflow);
+    load = (data) => {
+        const dataEntries = Object.entries(data);
         
-        for(const [key, data] of dataEntries) {
-            this.addNodeImport(data);
+        let drawflow = {};
+        for(const [nodeId, params] of dataEntries) {
+            // TODO: 모아서 한 번에 import
+            drawflow[nodeId] = this.makeNodeObject(params);
             if(this.state.reroute) {
-                this.addRerouteImport(data);
+                this.addRerouteImport(params);
             }
-            this.updateConnectionNodes("node-" + key);
+            this.updateConnectionNodes("node-" + nodeId);
         }
-        // for(const [key, data] of dataEntries) {
-        //     this.addNodeImport(data);
+        // for(const [key, params] of dataEntries) {
+        //     this.addNodeImport(params);
         // }
         // if(this.state.reroute) {
-        //     for(const [key, data] of dataEntries) {
-        //         this.addRerouteImport(data);
+        //     for(const [key, params] of dataEntries) {
+        //         this.addRerouteImport(params);
         //     }
         // }
-        // for(const [key, data] of dataEntries) {
+        // for(const [key, params] of dataEntries) {
         //     this.updateConnectionNodes("node-" + key);
         // }
 
-        const dataKeys = Object.keys(drawflow).map(key => key*1).sort();
-        if(dataKeys.length > 0) {
-            this.setState({
-                nodeId: dataKeys.slice(-1) + 1,
-            });
-        }
+        this.setState({
+            drawflow,
+        });
+
+        // const dataKeys = Object.keys(data).map(key => key*1).sort();
+        // if(dataKeys.length > 0) {
+        //     this.setState({
+        //         nodeId: dataKeys.slice(-1) + 1,
+        //     });
+        // }
     }
 
     clear = () => {
@@ -207,13 +225,17 @@ class Drawflow extends React.Component {
         },
     }
 
+    export = () => {
+        const exportData = Object.entries(this.state.drawflow).reduce((acc, val) => {
+            const nodeId = val[0];
+            const { params } = val[1];
+            return Object.assign(acc, {[nodeId]: params});
+        }, {});
+        console.log(JSON.stringify(exportData, null, 2));
+    }
+
     componentDidMount() {
-        this.setState({
-            reroute: true,
-            // drawflow: dummy,
-        }, () => {
-            this.load();
-        });
+        this.load(dummy);
     }
 
     render () {
@@ -233,7 +255,7 @@ class Drawflow extends React.Component {
                             this.drag(e, idx);
                         }}
                     >
-                        <span>{node.label}</span>
+                        <span>{node.type}</span>
                     </div>)}
                 </div>
                 <div className="drawflow-main">
@@ -244,7 +266,7 @@ class Drawflow extends React.Component {
                         onDragOver={e => {e.preventDefault()}}
                     >
                         <DrawflowAdditionalArea
-                            drawflow={this.state.drawflow}
+                            exportJSON={this.export}
                             clear={this.clear}
                             setEditorMode={(lock) => {
                                 this.setState({

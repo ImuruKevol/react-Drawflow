@@ -12,7 +12,6 @@ class Drawflow extends React.Component {
         super();
         this.state = {
             nodeList: [],
-            nodeBlockList: {},  // {component, params}
             events: {},
             nodeId: 1,
             ele_selected: null,
@@ -50,7 +49,7 @@ class Drawflow extends React.Component {
             force_first_input: false,
             draggable_inputs: true,
             select_elements: null,
-            drawflow: {},
+            drawflow: {},           // {component, params} Array
             editLock: false,
             zoom: {
                 value: 1,
@@ -79,35 +78,58 @@ class Drawflow extends React.Component {
         this.addNodeToDrawFlow(componentIndex, e.clientX, e.clientY);
     }
 
+    makePortObj = (port) => {
+        let obj = {
+            inputs: {},
+            outputs: {},
+        };
+
+        for(let i=1;i<=port.in;i++) {
+            obj.inputs[`input_${i}`] = {connections: []};
+        }
+        for(let i=1;i<=port.out;i++) {
+            obj.outputs[`output_${i}`] = {connections: []};
+        }
+
+        return obj;
+    }
+
+    setDrawflow = (nodeId, componentIndex, params) => {
+        this.setState({
+            drawflow: {
+                ...this.state.drawflow,
+                [nodeId]: Object.assign({}, {
+                    componentIndex,
+                    params,
+                }),
+            },
+            nodeId: nodeId + 1,
+        });
+    }
+
     /**
      * create and add node
-     * @param {ReactElement} componentIndex component name
+     * @param {Number} componentIndex componentIndex
      * @param {{in: Number, out: Number}} port 
      * @param {{x: Number, y: Number }} pos 
      * @param {{}} data 
      */
     addNode = (componentIndex, port, pos, data = {}) => {
-        // setState({nodeId, drawflow}) add a params(or other key)
         const { nodeId } = this.state;
         const { label } = this.state.nodeList[componentIndex];
         const params = {
-            nodeId,
-            label,
-            port,
-            pos,
+            id: nodeId,
+            name: label,
             data,
-        };
-        console.debug(params);
-        this.setState({
-            nodeBlockList: {
-                ...this.state.nodeBlockList,
-                [nodeId]: {
-                    component: this.state.nodeList[componentIndex].component,
-                    params,
-                }
+            port,
+            connections: this.makePortObj(port),
+            pos: {
+                x: pos.x,
+                y: pos.y,
             },
-            nodeId: nodeId + 1,
-        });
+        };
+        const { component } = this.state.nodeList[componentIndex];
+        this.setDrawflow(nodeId, componentIndex, params);
     }
 
     addNodeToDrawFlow = (componentIndex, x, y) => {
@@ -246,11 +268,11 @@ class Drawflow extends React.Component {
                             onInput={e => {}}
                             onDoubleClick={e => {}}
                         >
-                            {Object.entries(this.state.nodeBlockList).map((item, idx) => 
+                            {Object.values(this.state.drawflow).map((node, idx) => 
                             <DrawflowNodeBlock
                                 key={"drawflow-node-block-" + idx}
-                                NodeContent={item[1].component}
-                                params={item[1].params}
+                                NodeContent={this.state.nodeList[node.componentIndex].component}
+                                params={node.params}
                                 // blockType="common"
                             />
                             )}

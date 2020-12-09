@@ -1,13 +1,25 @@
-import React, { useState } from "react";
+import React from "react";
 
 const DrawflowNodeBlock = ({
     NodeContent,
     params,
     blockType = "common",
 }) => {
-    // params: {nodeId, label, port, pos, data}
-    // port: {in: Number, out: Number}
-    // pos:  {x: Number, y: Number }
+    // params
+    // {
+    //     id: nodeId,
+    //     name: label,
+    //     data: data,
+    //     port: {in: Number, out: Number}
+    //     connections: {
+    //         inputs: {},
+    //         outputs: {},
+    //     },
+    //     pos: {
+    //         x: Double,
+    //         y: Double,
+    //     },
+    // };
 
     /**
      * blockType
@@ -15,18 +27,14 @@ const DrawflowNodeBlock = ({
      * - custom(naming is free, but need possible className)
      */
 
-    let data = {};
-    // const [data, setData] = useState({});
-
     // input port, output port coponent
     const portComponent = (type) => {
         let arr = [];
-        data[`${type}put`] = {};
+
         for(let i=1;i<=params.port[type];i++) {
             arr.push(<div key={`drawflow-node-${type}put-${i}`} className={`${type}put ${type}put_${i}`}></div>);
-            data[`${type}put`][`${type}put_${i}`] = {connections: []};
         }
-        console.debug(type, data[`${type}put`]);
+
         return (
         <div className={`${type}puts`}>
             {arr.map(ele => ele)}
@@ -46,7 +54,7 @@ const DrawflowNodeBlock = ({
    // TODO: handler overriding(action)
    // If you want, change styled component. My case is not supported styled component...
     <div
-        className={`drawflow-node-block-${blockType} ${params.label.replace(/\s/g, "").toLowerCase()}`}
+        className={`drawflow-node-block-${blockType} ${params.name.replace(/\s/g, "").toLowerCase()}`}
         style={{
             position: "absolute",
             top: params.pos.y + "px",

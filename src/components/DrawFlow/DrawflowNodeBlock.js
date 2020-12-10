@@ -11,10 +11,6 @@ const DrawflowNodeBlock = ({
     //     type: type,
     //     data: data,
     //     port: {in: Number, out: Number}
-    //     connections: {
-    //         inputs: {},
-    //         outputs: {},
-    //     },
     //     pos: {
     //         x: Double,
     //         y: Double,
@@ -26,50 +22,6 @@ const DrawflowNodeBlock = ({
      * - common
      * - custom(naming is free, but need possible className)
      */
-
-    const [connections, setConnections] = useState([]);
-
-    const pathComponent = (classList) => {
-        return (
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className={classList.join(" ")}
-        >
-            <path
-                xmlns="http://www.w3.org/2000/svg"
-                className="main-path"
-                d=""
-                // d="M 10 10 L 50 50"
-            >
-
-            </path>
-        </svg>
-        );
-    }
-    
-    const makePath = (conn, input_item, output_item) => {
-        let svgClassList = [];
-        svgClassList.push("connection");
-        svgClassList.push("node_in_node-"+conn.id);
-        svgClassList.push("node_out_node-"+conn.inputs[input_item].connections[output_item].node);
-        svgClassList.push(conn.inputs[input_item].connections[output_item].input);
-        svgClassList.push(input_item);
-        
-        return pathComponent(svgClassList);
-    }
-
-    const drawConnections = (conn) => {
-        let arr = [];
-        Object.keys(conn.inputs).map(inputItem => {
-            Object.keys(conn.inputs[inputItem].connections).map(outputItem => {
-                const connection = makePath(conn, inputItem, outputItem);
-                arr.push(connection);
-                return null;
-            });
-            return null;
-        });
-        setConnections(arr);
-    }
 
     // input port, output port coponent
     const portComponent = (type) => {
@@ -87,7 +39,7 @@ const DrawflowNodeBlock = ({
     }
 
     useEffect(() => {
-        drawConnections(params.connections);
+        // drawConnections(params.connections);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -121,7 +73,6 @@ const DrawflowNodeBlock = ({
             </div>
             {portComponent("out")}
         </div>
-        {connections.map(conn => conn)}
     </>
     );
 }

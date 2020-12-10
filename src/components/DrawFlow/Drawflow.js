@@ -11,6 +11,7 @@ class Drawflow extends React.Component {
     constructor () {
         super();
         this.state = {
+            // TODO: unuse state remove
             nodeList: [],
             events: {},
             nodeId: 1,
@@ -50,6 +51,7 @@ class Drawflow extends React.Component {
             draggable_inputs: true,
             select_elements: null,
             drawflow: {},           // {component, params} Array
+            connections: {},              // {svg1: [point1, point2, ...], svg2: [...]}
             editLock: false,
             zoom: {
                 value: 1,
@@ -57,7 +59,7 @@ class Drawflow extends React.Component {
                 min: 0.5,
                 tick: 0.1,
                 lastValue: 1,
-            }
+            },
         }
         this.state.nodeList = Object.entries(Nodes).reduce((acc, val) => {
             acc.push({
@@ -165,8 +167,50 @@ class Drawflow extends React.Component {
         };
     }
 
-    addRerouteImport = () => {
+    pathComponent = (classList) => {
+        return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className={classList.join(" ")}
+        >
+            <path
+                xmlns="http://www.w3.org/2000/svg"
+                className="main-path"
+                d=""
+                // d="M 10 10 L 50 50"
+            >
 
+            </path>
+        </svg>
+        );
+    }
+    
+    makePath = (conn, input, output) => {
+        let svgClassList = [];
+        svgClassList.push("connection");
+        svgClassList.push("node_in_node-"+conn.id);
+        svgClassList.push("node_out_node-"+conn.inputs[input].connections[output].node);
+        svgClassList.push(conn.inputs[input].connections[output].input);
+        svgClassList.push(input);
+        
+        return this.pathComponent(svgClassList);
+    }
+
+    drawConnection = (conn) => {
+        let arr = [];
+        Object.keys(conn.inputs).map(inputItem => {
+            Object.keys(conn.inputs[inputItem].connections).map(outputItem => {
+                const connection = this.makePath(conn, inputItem, outputItem);
+                arr.push(connection);
+                return null;
+            });
+            return null;
+        });
+        // 
+    }
+
+    drawConnections = () => {
+        
     }
 
     updateConnectionNodes = () => {
@@ -179,11 +223,10 @@ class Drawflow extends React.Component {
         let drawflow = {};
         for(const [nodeId, params] of dataEntries) {
             drawflow[nodeId] = this.makeNodeObject(params);
-            if(this.state.reroute) {
-                this.addRerouteImport(params);
-            }
+            // I don't understand reroute's role. Then, remove reroute logic.
             this.updateConnectionNodes("node-" + nodeId);
         }
+
         // for(const [key, params] of dataEntries) {
         //     this.addNodeImport(params);
         // }
@@ -200,12 +243,12 @@ class Drawflow extends React.Component {
             drawflow,
         });
 
-        // const dataKeys = Object.keys(data).map(key => key*1).sort();
-        // if(dataKeys.length > 0) {
-        //     this.setState({
-        //         nodeId: dataKeys.slice(-1) + 1,
-        //     });
-        // }
+        const dataKeys = Object.keys(data).map(key => key*1).sort();
+        if(dataKeys.length > 0) {
+            this.setState({
+                nodeId: dataKeys.slice(-1)*1 + 1,
+            });
+        }
     }
 
     clear = () => {
@@ -297,6 +340,32 @@ class Drawflow extends React.Component {
                                 // blockType="common"
                             />
                             )}
+                            {Object.entries(this.state.connections).map(([key, connection]) => {
+                                // key: fromId_portNum_toId_portNum
+                                return (
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="drawflow-svg"
+                                    >
+                                        {connection.map(val => {
+                                            /**
+                                             * val: path or point
+                                             * path
+                                             * - d property value
+                                             <path
+                                                 xmlns="http://www.w3.org/2000/svg"
+                                                 className="main-path"
+                                                 d="M 10 10 L 50 50"
+                                             </path>
+                                             * point
+                                             * - x, y
+                                             >
+                                             */
+                                            return (<></>);
+                                        })}
+                                    </svg>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>

@@ -4,7 +4,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Drawflow
 
-This app is wrapped [Drawflow](https://github.com/jerosoler/Drawflow) for react.
+This app is convert [Drawflow](https://github.com/jerosoler/Drawflow) for react.
 
 ## Available Scripts
 

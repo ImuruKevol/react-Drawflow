@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 const DrawflowNodeBlock = ({
+    canvas,
+    zoom,
     NodeContent,
     params,
     blockType = "common",
+    ports,
+    pushPort,
 }) => {
     // params
     // {
@@ -23,12 +27,41 @@ const DrawflowNodeBlock = ({
      * - custom(naming is free, but need possible className)
      */
 
+    const getPortPos = (size, pos) => {
+        const widthZoom = (canvas.width / (canvas.width * zoom)) || 0;
+        const heightZoom = (canvas.height / (canvas.height * zoom)) || 0;
+        const x = size.width/2 + (pos.x - canvas.x ) * widthZoom;
+        const y = size.height/2 + (pos.y - canvas.y ) * heightZoom;
+        return {x, y}
+    }
+
     // input port, output port coponent
     const portComponent = (type) => {
         let arr = [];
 
         for(let i=1;i<=params.port[type];i++) {
-            arr.push(<div key={`drawflow-node-${type}put-${i}`} className={`${type}put ${type}put_${i}`}></div>);
+            const port = 
+                <div
+                    ref={ref => {
+                        // TODO: need optimizing
+                        const key = `${params.id}_${type}_${i}`;
+                        if(ref && ref.getBoundingClientRect && !ports[key]) {
+                            const rect = ref.getBoundingClientRect();
+                            const size = {
+                                width: ref.offsetWidth,
+                                height: ref.offsetHeight,
+                            };
+                            const pos = {
+                                x: rect.x,
+                                y: rect.y,
+                            };
+                            pushPort(key, getPortPos(size, pos))
+                        }
+                    }}
+                    key={`drawflow-node-${type}put-${i}`}
+                    className={`${type}put ${type}put_${i}`}    // TODO: ${type}put_${i} don't need?
+                ></div>;
+            arr.push(port);
         }
 
         return (
@@ -37,11 +70,6 @@ const DrawflowNodeBlock = ({
         </div>
         );
     }
-
-    useEffect(() => {
-        // drawConnections(params.connections);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     return (
     /*

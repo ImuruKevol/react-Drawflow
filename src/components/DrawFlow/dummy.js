@@ -1,4 +1,5 @@
 const dummy = {
+  "nodes": {
     "1": {
       "id": 1,
       "type": "Collector",
@@ -6,23 +7,6 @@ const dummy = {
       "port": {
         "in": 1,
         "out": 1
-      },
-      "connections": {
-        "inputs": {
-          "input_1": {
-            "connections": [
-                {
-                    "node": "2",
-                    "input": "output_1"
-                }
-            ]
-          }
-        },
-        "outputs": {
-          "output_1": {
-            "connections": []
-          }
-        }
       },
       "pos": {
         "x": 90.3125,
@@ -37,23 +21,6 @@ const dummy = {
         "in": 1,
         "out": 1
       },
-      "connections": {
-        "inputs": {
-          "input_1": {
-            "connections": []
-          }
-        },
-        "outputs": {
-          "output_1": {
-            "connections": [
-                {
-                    "node": "2",
-                    "output": "input_1"
-                }
-            ]
-          }
-        }
-      },
       "pos": {
         "x": 218.3125,
         "y": 123
@@ -66,18 +33,6 @@ const dummy = {
       "port": {
         "in": 1,
         "out": 1
-      },
-      "connections": {
-        "inputs": {
-          "input_1": {
-            "connections": []
-          }
-        },
-        "outputs": {
-          "output_1": {
-            "connections": []
-          }
-        }
       },
       "pos": {
         "x": 99.3125,
@@ -92,18 +47,6 @@ const dummy = {
         "in": 1,
         "out": 1
       },
-      "connections": {
-        "inputs": {
-          "input_1": {
-            "connections": []
-          }
-        },
-        "outputs": {
-          "output_1": {
-            "connections": []
-          }
-        }
-      },
       "pos": {
         "x": 404.3125,
         "y": 41
@@ -116,18 +59,6 @@ const dummy = {
       "port": {
         "in": 1,
         "out": 1
-      },
-      "connections": {
-        "inputs": {
-          "input_1": {
-            "connections": []
-          }
-        },
-        "outputs": {
-          "output_1": {
-            "connections": []
-          }
-        }
       },
       "pos": {
         "x": 364.3125,
@@ -142,23 +73,20 @@ const dummy = {
         "in": 1,
         "out": 1
       },
-      "connections": {
-        "inputs": {
-          "input_1": {
-            "connections": []
-          }
-        },
-        "outputs": {
-          "output_1": {
-            "connections": []
-          }
-        }
-      },
       "pos": {
         "x": 447.3125,
         "y": 117
       }
     }
-  };
+  },
+  "connections": {
+    "1_1_2_1": [
+      {
+        "type": "path",
+        "d": "M 10 10 L 50 50"
+      }
+    ]
+  }
+};
 
 export default dummy;

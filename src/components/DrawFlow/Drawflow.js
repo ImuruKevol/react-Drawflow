@@ -3,6 +3,7 @@ import DrawflowAdditionalArea from "./DrawflowAdditionalArea";
 import DrawflowZoomArea from "./DrawflowZoomArea";
 import DrawflowNodeBlock from "./DrawflowNodeBlock";
 import Nodes from "./Nodes";
+import { createCurvature } from "./drawflowHandler";
 import "./beautiful.css";
 import "./drawflow.css";
 import dummy from "./dummy";
@@ -50,8 +51,10 @@ class Drawflow extends React.Component {
             force_first_input: false,
             draggable_inputs: true,
             select_elements: null,
+            canvas: {x: 0, y: 0, width: 0, height: 0},
             drawflow: {},           // {component, params} Array
             connections: {},              // {svg1: [point1, point2, ...], svg2: [...]}
+            ports: {},
             editLock: false,
             zoom: {
                 value: 1,
@@ -132,19 +135,20 @@ class Drawflow extends React.Component {
         this.setDrawflow(nodeId, componentIndex, params);
         this.setState({
             nodeId: nodeId + 1,
-        })
+        });
+        console.log(nodeId)
     }
 
     addNodeToDrawFlow = (componentIndex, x, y) => {
         if(this.state.editLock) return;
         // TODO: replace querySelector to something.
-        const canvas = document.querySelector("#drawflow").querySelector(".drawflow");
-        const cw = canvas.clientWidth;
-        const ch = canvas.clientHeight;
+        const { canvas } = this.state;
+        const cw = canvas.width;
+        const ch = canvas.height;
         const zoom = this.state.zoom.value;
         const pos = {
-            x: x * ( cw / (cw * zoom)) - (canvas.getBoundingClientRect().x * ( cw / (cw * zoom))),
-            y: y * ( ch / (ch * zoom)) - (canvas.getBoundingClientRect().y * ( ch / (ch * zoom))),
+            x: x * ( cw / (cw * zoom)) - (canvas.x * ( cw / (cw * zoom))),
+            y: y * ( ch / (ch * zoom)) - (canvas.y * ( ch / (ch * zoom))),
         }
         console.debug("drop position");
         console.debug(pos);
@@ -218,14 +222,18 @@ class Drawflow extends React.Component {
     }
 
     load = (data) => {
-        const dataEntries = Object.entries(data);
+        const dataEntries = Object.entries(data.nodes);
+        const { connections } = data;
+        this.setState({
+            connections
+        });
         
         let drawflow = {};
         for(const [nodeId, params] of dataEntries) {
             drawflow[nodeId] = this.makeNodeObject(params);
             // I don't understand reroute's role. Then, remove reroute logic.
-            this.updateConnectionNodes("node-" + nodeId);
         }
+        this.updateConnectionNodes();
 
         // for(const [key, params] of dataEntries) {
         //     this.addNodeImport(params);
@@ -243,7 +251,7 @@ class Drawflow extends React.Component {
             drawflow,
         });
 
-        const dataKeys = Object.keys(data).map(key => key*1).sort();
+        const dataKeys = Object.keys(data.nodes).map(key => key*1).sort();
         if(dataKeys.length > 0) {
             this.setState({
                 nodeId: dataKeys.slice(-1)*1 + 1,
@@ -277,7 +285,19 @@ class Drawflow extends React.Component {
     }
 
     componentDidMount() {
-        this.load(dummy);
+        // TODO: replace querySelector to something.
+        const canvas = document.querySelector("#drawflow").querySelector(".drawflow");
+        const canvasRect = canvas.getBoundingClientRect();
+        this.setState({
+            canvas: {
+                x: canvasRect.x,
+                y: canvasRect.y,
+                width: canvas.clientWidth,
+                height: canvas.clientHeight,
+            }
+        }, () => {
+            this.load(dummy);
+        });
     }
 
     render () {
@@ -335,28 +355,61 @@ class Drawflow extends React.Component {
                             {Object.values(this.state.drawflow).map((node, idx) => 
                             <DrawflowNodeBlock
                                 key={"drawflow-node-block-" + idx}
+                                canvas={this.state.canvas}
+                                zoom={this.state.zoom.value}
                                 NodeContent={this.state.nodeList[node.componentIndex].component}
                                 params={node.params}
                                 // blockType="common"
+                                ports={this.state.ports}
+                                pushPort={(key, port) => {
+                                    this.setState({
+                                        ports: {
+                                            ...this.state.ports,
+                                            [key]: port,
+                                        }
+                                    });
+                                }}
                             />
                             )}
                             {Object.entries(this.state.connections).map(([key, connection]) => {
                                 // key: fromId_portNum_toId_portNum
+                                const { ports } = this.state;
+                                const arr = key.split("_");
+                                const startKey = `${arr[0]}_out_${arr[1]}`;
+                                const endKey = `${arr[2]}_in_${arr[3]}`;
+                                
+                                if(!ports[startKey] || !ports[endKey]) return null;
+
+                                const start = {
+                                    x: ports[startKey].x,
+                                    y: ports[startKey].y,
+                                }
+                                const end = {
+                                    x: ports[endKey].x,
+                                    y: ports[endKey].y,
+                                }
                                 return (
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         className="drawflow-svg"
                                     >
-                                        {connection.map(val => {
+                                        {connection.length === 1 ?
+                                        <path
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="main-path"
+                                            d={createCurvature(start, end, this.state.curvature, 'openclose')}
+                                        ></path>
+                                        :
+                                        connection.map(val => {
                                             /**
                                              * val: path or point
                                              * path
                                              * - d property value
-                                             <path
-                                                 xmlns="http://www.w3.org/2000/svg"
-                                                 className="main-path"
-                                                 d="M 10 10 L 50 50"
-                                             </path>
+                                                <path
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    className="main-path"
+                                                    d="M 10 10 L 50 50"
+                                                </path>
                                              * point
                                              * - x, y
                                              >

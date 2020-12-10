@@ -1,26 +1,47 @@
-const createCurvature = () => {
+const createCurvature = (start, end, curv, type) => {
+  let hx1 = null;
+  let hx2 = null;
 
-}
+  //type openclose open close other
+  switch (type) {
+    case 'open':
+      if (start.x >= end.x) {
+        hx1 = start.x + Math.abs(end.x - start.x) * curv;
+        hx2 = end.x - Math.abs(end.x - start.x) * (curv * -1);
+      } else {
+        hx1 = start.x + Math.abs(end.x - start.x) * curv;
+        hx2 = end.x - Math.abs(end.x - start.x) * curv;
+      }
+      return ' M ' + start.x + ' ' + start.y + ' C ' + hx1 + ' ' + start.y + ' ' + hx2 + ' ' + end.y + ' ' + end.x + '  ' + end.y;
 
-/**
- * 
- * @param nodeId node id
- * @param params curvature, rerouteCurvature, rerouteCurvatureStartEnd, rerouteFixCurvature, rerouteWidth, zoom
- */
-const updateConnectionNodes = (nodeId, params) => {
-  const { curvature, rerouteCurvature, rerouteCurvatureStartEnd, rerouteFixCurvature, rerouteWidth, zoom } = params;
-  const idSearch = 'node_in_' + nodeId;
-  const idSearchOut = 'node_out_' + nodeId;
-  
-  // TODO: replace querySelector to something.
-  const precanvas = document.querySelector("#drawflow").querySelector(".drawflow");
-  
-  let precanvasWitdhZoom = (precanvas.clientWidth / (precanvas.clientWidth * zoom)) || 0;
-  let precanvasHeightZoom = (precanvas.clientHeight / (precanvas.clientHeight * zoom)) || 0;
+    case 'close':
+      if (start.x >= end.x) {
+        hx1 = start.x + Math.abs(end.x - start.x) * (curv * -1);
+        hx2 = end.x - Math.abs(end.x - start.x) * curv;
+      } else {
+        hx1 = start.x + Math.abs(end.x - start.x) * curv;
+        hx2 = end.x - Math.abs(end.x - start.x) * curv;
+      }
+      return ' M ' + start.x + ' ' + start.y + ' C ' + hx1 + ' ' + start.y + ' ' + hx2 + ' ' + end.y + ' ' + end.x + '  ' + end.y;
 
-  
+    case 'other':
+      if (start.x >= end.x) {
+        hx1 = start.x + Math.abs(end.x - start.x) * (curv * -1);
+        hx2 = end.x - Math.abs(end.x - start.x) * (curv * -1);
+      } else {
+        hx1 = start.x + Math.abs(end.x - start.x) * curv;
+        hx2 = end.x - Math.abs(end.x - start.x) * curv;
+      }
+      return ' M ' + start.x + ' ' + start.y + ' C ' + hx1 + ' ' + start.y + ' ' + hx2 + ' ' + end.y + ' ' + end.x + '  ' + end.y;
+
+    default:
+      hx1 = start.x + Math.abs(end.x - start.x) * curv;
+      hx2 = end.x - Math.abs(end.x - start.x) * curv;
+
+      return ' M ' + start.x + ' ' + start.y + ' C ' + hx1 + ' ' + start.y + ' ' + hx2 + ' ' + end.y + ' ' + end.x + '  ' + end.y;
+  }
 }
 
 export {
-  updateConnectionNodes,
+  createCurvature,
 }

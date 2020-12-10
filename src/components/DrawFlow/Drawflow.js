@@ -25,7 +25,10 @@ class Drawflow extends React.Component {
             curvature: 0.5,
             reroute_curvature_start_end: 0.5,
             reroute_curvature: 0.5,
-            reroute_width: 6,
+
+            config: {
+                circleWidth: 4,
+            },
 
             drag_point: false,
 
@@ -164,57 +167,53 @@ class Drawflow extends React.Component {
                 break;
             }
         }
-        // console.log(nodeId, componentIndex, params);
         return {
             componentIndex,
             params,
         };
     }
 
-    pathComponent = (classList) => {
+    PathComponent = (start, end, type = 'openclose') => {
         return (
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className={classList.join(" ")}
-        >
             <path
                 xmlns="http://www.w3.org/2000/svg"
                 className="main-path"
-                d=""
-                // d="M 10 10 L 50 50"
-            >
-
-            </path>
-        </svg>
+                d={createCurvature(start, end, this.state.curvature, type)}
+            ></path>
         );
     }
-    
-    makePath = (conn, input, output) => {
-        let svgClassList = [];
-        svgClassList.push("connection");
-        svgClassList.push("node_in_node-"+conn.id);
-        svgClassList.push("node_out_node-"+conn.inputs[input].connections[output].node);
-        svgClassList.push(conn.inputs[input].connections[output].input);
-        svgClassList.push(input);
-        
-        return this.pathComponent(svgClassList);
+
+    CircleComponent = (x, y) => {
+        return (
+            <circle
+                xmlns="http://www.w3.org/2000/svg"
+                className="point"
+                cx={x}
+                cy={y}
+                r={this.state.config.circleWidth}
+            ></circle>
+        );
     }
 
-    drawConnection = (conn) => {
-        let arr = [];
-        Object.keys(conn.inputs).map(inputItem => {
-            Object.keys(conn.inputs[inputItem].connections).map(outputItem => {
-                const connection = this.makePath(conn, inputItem, outputItem);
-                arr.push(connection);
-                return null;
-            });
-            return null;
-        });
-        // 
-    }
+    drawConnections = (start, end, points) => {
+        let paths = [this.PathComponent(start, points[0], "open")];
+        let circles = points.reduce((acc, val) => {
+            acc.push(this.CircleComponent(val.x, val.y));
+            return acc;
+        }, []);
 
-    drawConnections = () => {
-        
+        for(let i=0;i<points.length - 1;i++) {
+            const start = {...points[i]};
+            const end = {...points[i+1]};
+            paths.push(this.PathComponent(start, end));
+        }
+        paths.push(this.PathComponent(points.slice(-1)[0], end, "close"));
+        return (
+        <>
+            {paths.map(comp => comp)}
+            {circles.map(comp => comp)}
+        </>
+        );
     }
 
     updateConnectionNodes = () => {
@@ -377,7 +376,7 @@ class Drawflow extends React.Component {
                                 const arr = key.split("_");
                                 const startKey = `${arr[0]}_out_${arr[1]}`;
                                 const endKey = `${arr[2]}_in_${arr[3]}`;
-                                
+
                                 if(!ports[startKey] || !ports[endKey]) return null;
 
                                 const start = {
@@ -393,29 +392,15 @@ class Drawflow extends React.Component {
                                         xmlns="http://www.w3.org/2000/svg"
                                         className="drawflow-svg"
                                     >
-                                        {connection.length === 1 ?
-                                        <path
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="main-path"
-                                            d={createCurvature(start, end, this.state.curvature, 'openclose')}
-                                        ></path>
-                                        :
-                                        connection.map(val => {
-                                            /**
-                                             * val: path or point
-                                             * path
-                                             * - d property value
-                                                <path
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    className="main-path"
-                                                    d="M 10 10 L 50 50"
-                                                </path>
-                                             * point
-                                             * - x, y
-                                             >
-                                             */
-                                            return (<></>);
-                                        })}
+                                        {connection.length === 0?
+                                            <path
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="main-path"
+                                                d={createCurvature(start, end, this.state.curvature, 'openclose')}
+                                            ></path>
+                                            :
+                                            this.drawConnections(start, end, connection)
+                                        }
                                     </svg>
                                 );
                             })}

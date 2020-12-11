@@ -241,18 +241,6 @@ class Drawflow extends React.Component {
         }
         this.updateConnectionNodes();
 
-        // for(const [key, params] of dataEntries) {
-        //     this.addNodeImport(params);
-        // }
-        // if(this.state.reroute) {
-        //     for(const [key, params] of dataEntries) {
-        //         this.addRerouteImport(params);
-        //     }
-        // }
-        // for(const [key, params] of dataEntries) {
-        //     this.updateConnectionNodes("node-" + key);
-        // }
-
         this.setState({
             drawflow,
         });
@@ -327,8 +315,21 @@ class Drawflow extends React.Component {
             drag: false,
         });
     }
+    
+    getPortListByNodeId = (nodeId) => {
+        const { ports } = this.state;
+        return Object.keys(ports).filter(key => key.split(/_/g)[0] === "" + nodeId);
+    }
 
     movePosition = (nodeId, pos) => {
+        const portKeys = this.getPortListByNodeId(nodeId);
+        const ports = portKeys.reduce((acc, portKey) => {
+            acc[portKey] = {
+                x: acc[portKey].x + pos.x,
+                y: acc[portKey].y + pos.y,
+            };
+            return acc;
+        }, {...this.state.ports});
         this.setState({
             drawflow: {
                 ...this.state.drawflow,
@@ -342,7 +343,8 @@ class Drawflow extends React.Component {
                         }
                     }
                 }
-            }
+            },
+            ports,
         });
     }
 

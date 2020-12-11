@@ -105,6 +105,7 @@ button {
 
 .drawflow-node-block-common {
   display: inline-block;
+  cursor: move;
   padding: 10px 15px;
   border: 1px solid black;
   display: flex;
@@ -153,6 +154,11 @@ button {
   box-shadow: 0 2px 15px 2px var(--border-color);
   border: 2px solid blue;
   z-index: 20;
+}
+
+.drawflow .point.select {
+  r: 7;
+  fill: red;
 }
 
 .drawflow-node-content {

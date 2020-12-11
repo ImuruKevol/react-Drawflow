@@ -27,7 +27,7 @@ class Drawflow extends React.Component {
             reroute_curvature: 0.5,
 
             config: {
-                circleWidth: 4,
+                circleWidth: 6,
             },
 
             drag_point: false,
@@ -176,10 +176,10 @@ class Drawflow extends React.Component {
         };
     }
 
-    PathComponent = (start, end, type = 'openclose') => {
+    PathComponent = (start, end, type, key) => {
         return (
             <path
-                key={+new Date() + "" + (Math.random()*10000).toFixed(0)}
+                key={key}
                 xmlns="http://www.w3.org/2000/svg"
                 className="main-path"
                 d={createCurvature(start, end, this.state.curvature, type)}
@@ -188,33 +188,36 @@ class Drawflow extends React.Component {
         );
     }
 
-    CircleComponent = (x, y) => {
+    CircleComponent = (x, y, key) => {
         return (
             <circle
-                key={+new Date() + "" + (Math.random()*10000).toFixed(0)}
+                key={key}
                 xmlns="http://www.w3.org/2000/svg"
                 className="point"
                 cx={x}
                 cy={y}
                 r={this.state.config.circleWidth}
                 onMouseDown={this.select}
+                onMouseMove={e => {
+                    this.moveNode(e, null, "point");
+                }}
             ></circle>
         );
     }
 
-    drawConnections = (start, end, points) => {
-        let paths = [this.PathComponent(start, points[0], "open")];
-        let circles = points.reduce((acc, val) => {
-            acc.push(this.CircleComponent(val.x, val.y));
+    drawConnections = (start, end, points, idx) => {
+        let paths = [this.PathComponent(start, points[0], "open", "draw-flow-svg-" + idx + "path-0")];
+        let circles = points.reduce((acc, val, i) => {
+            acc.push(this.CircleComponent(val.x, val.y, "draw-flow-svg-" + idx + "circle-" + i));
             return acc;
         }, []);
 
         for(let i=0;i<points.length - 1;i++) {
             const start = {...points[i]};
             const end = {...points[i+1]};
-            paths.push(this.PathComponent(start, end));
+            paths.push(this.PathComponent(start, end, "openclose", "draw-flow-svg-" + idx + "path-" + (i + 1)));
         }
-        paths.push(this.PathComponent(points.slice(-1)[0], end, "close"));
+        paths.push(this.PathComponent(points.slice(-1)[0], end, "close", "draw-flow-svg-" + idx + "path-" + points.length));
         return (
         <>
             {paths.map(comp => comp)}
@@ -299,13 +302,13 @@ class Drawflow extends React.Component {
         if(this.state.select) this.state.select.classList.remove("select");
         const { target } = e;
         let element = target;
-        if(target.classList[0] === "drawflow-node-content") {
+        if(target.classList.contains("drawflow-node-content")) {
             element = target.parentElement;
         }
 
         element.classList.add("select");
         this.setState({
-            drag: true,
+            drag: target.classList.contains("input") || target.classList.contains("output")? false : true,
             select: element,
         });
     }
@@ -348,15 +351,30 @@ class Drawflow extends React.Component {
         });
     }
 
-    moveNode = (e, nodeId) => {
+    movePoint = (key, pos) => {
+        this.setState({
+            connections: {
+                ...this.state.connections,
+                [key]: pos,
+            }
+        });
+    }
+
+    moveNode = (e, nodeId, type = "node") => {
         if(!this.state.drag) return;
-        if(e.target !== this.state.select && e.target.classList[0] !== "drawflow-node-content") return;
+        if(e.target !== this.state.select && !e.target.classList.contains("drawflow-node-content")) return;
+
         const { movementX, movementY } = e;
         if(movementX === 0 && movementY === 0) return;
-        this.movePosition(nodeId, {
-            x: movementX,
-            y: movementY,
-        });
+        if(type === "node") {
+            this.movePosition(nodeId, {
+                x: movementX,
+                y: movementY,
+            });
+        }
+        else if(type === "point") {
+            console.log("move");
+        }
     }
 
     componentDidMount() {
@@ -452,7 +470,7 @@ class Drawflow extends React.Component {
                                 }}
                             />
                             )}
-                            {Object.entries(this.state.connections).map(([key, connection]) => {
+                            {Object.entries(this.state.connections).map(([key, connection], idx) => {
                                 // key: fromId_portNum_toId_portNum
                                 const { ports } = this.state;
                                 const arr = key.split("_");
@@ -471,7 +489,7 @@ class Drawflow extends React.Component {
                                 }
                                 return (
                                     <svg
-                                        key={+new Date() + "" + (Math.random()*10000).toFixed(0)}
+                                        key={"drawflow-svg-" + idx}
                                         xmlns="http://www.w3.org/2000/svg"
                                         className="drawflow-connection"
                                     >
@@ -483,7 +501,7 @@ class Drawflow extends React.Component {
                                                 onMouseDown={this.select}
                                             ></path>
                                             :
-                                            this.drawConnections(start, end, connection)
+                                            this.drawConnections(start, end, connection, idx)
                                         }
                                     </svg>
                                 );

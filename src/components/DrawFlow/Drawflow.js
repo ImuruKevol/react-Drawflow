@@ -19,6 +19,7 @@ class Drawflow extends React.Component {
             ele_selected: null,
             node_selected: null,
             drag: false,
+            canvasDrag: false,
 
             reroute:true,
             reroute_fix_curvature: false,
@@ -27,6 +28,10 @@ class Drawflow extends React.Component {
             reroute_curvature: 0.5,
 
             config: {
+                canvasTranslate: {
+                    x: 0,
+                    y: 0,
+                },
                 circleWidth: 6,
             },
 
@@ -188,7 +193,7 @@ class Drawflow extends React.Component {
         );
     }
 
-    CircleComponent = (x, y, key) => {
+    CircleComponent = (x, y, key, svgKey, i) => {
         return (
             <circle
                 key={key}
@@ -199,16 +204,16 @@ class Drawflow extends React.Component {
                 r={this.state.config.circleWidth}
                 onMouseDown={this.select}
                 onMouseMove={e => {
-                    this.moveNode(e, null, "point");
+                    this.movePoint(e, svgKey, i);
                 }}
             ></circle>
         );
     }
 
-    drawConnections = (start, end, points, idx) => {
+    drawConnections = (start, end, points, idx, svgKey) => {
         let paths = [this.PathComponent(start, points[0], "open", "draw-flow-svg-" + idx + "path-0")];
         let circles = points.reduce((acc, val, i) => {
-            acc.push(this.CircleComponent(val.x, val.y, "draw-flow-svg-" + idx + "circle-" + i));
+            acc.push(this.CircleComponent(val.x, val.y, "draw-flow-svg-" + idx + "circle-" + i, svgKey, i));
             return acc;
         }, []);
 
@@ -360,21 +365,56 @@ class Drawflow extends React.Component {
         });
     }
 
-    moveNode = (e, nodeId, type = "node") => {
+    moveNode = (e, nodeId) => {
         if(!this.state.drag) return;
         if(e.target !== this.state.select && !e.target.classList.contains("drawflow-node-content")) return;
 
         const { movementX, movementY } = e;
         if(movementX === 0 && movementY === 0) return;
-        if(type === "node") {
-            this.movePosition(nodeId, {
-                x: movementX,
-                y: movementY,
-            });
+
+        this.movePosition(nodeId, {
+            x: movementX,
+            y: movementY,
+        });
+    }
+
+    movePoint = (e, svgKey, i) => {
+        if(!this.state.drag) return;
+        if(e.target !== this.state.select) return;
+
+        const { movementX, movementY } = e;
+        if(movementX === 0 && movementY === 0) return;
+        
+        const after = {
+            x: this.state.connections[svgKey][i].x + movementX,
+            y: this.state.connections[svgKey][i].y + movementY,
         }
-        else if(type === "point") {
-            console.log("move");
-        }
+        let clone = [...this.state.connections[svgKey]];
+        clone[i] = after;
+        this.setState({
+            connections: {
+                ...this.state.connections,
+                [svgKey]: clone,
+            }
+        });
+    }
+
+    canvasMove = (e) => {
+        const { canvasDrag } = this.state;
+        if(!canvasDrag) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const { movementX, movementY } = e;
+        if(movementX === 0 && movementY === 0) return;
+        this.setState({
+            config: {
+                ...this.state.config,
+                canvasTranslate: {
+                    x: this.state.config.canvasTranslate.x + movementX,
+                    y: this.state.config.canvasTranslate.y + movementY,
+                }
+            }
+        });
     }
 
     componentDidMount() {
@@ -417,8 +457,19 @@ class Drawflow extends React.Component {
                     <div
                         id="drawflow"
                         className="parent-drawflow"
-                        onMouseDown={this.unSelect}
-                        onMouseUp={this.setDragFalse}
+                        onMouseDown={e => {
+                            this.setState({
+                                canvasDrag: true,
+                            });
+                            this.unSelect(e);
+                        }}
+                        onMouseUp={e => {
+                            this.setState({
+                                canvasDrag: false,
+                            });
+                            this.setDragFalse();
+                        }}
+                        onMouseMove={this.canvasMove}
                         onDrop={this.drop}
                         onDragOver={e => {e.preventDefault()}}
                     >
@@ -438,6 +489,9 @@ class Drawflow extends React.Component {
                         />
                         <div
                             className="drawflow"
+                            style={{
+                                transform: `translate(${this.state.config.canvasTranslate.x}px, ${this.state.config.canvasTranslate.y}px)`
+                            }}
                             onMouseUp={e => {}}
                             onMouseMove={e => {}}
                             onMouseDown={e => {}}
@@ -501,7 +555,7 @@ class Drawflow extends React.Component {
                                                 onMouseDown={this.select}
                                             ></path>
                                             :
-                                            this.drawConnections(start, end, connection, idx)
+                                            this.drawConnections(start, end, connection, idx, key)
                                         }
                                     </svg>
                                 );

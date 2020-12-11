@@ -159,6 +159,7 @@ button {
 .drawflow .point.select {
   r: 7;
   fill: red;
+  z-index: 20;
 }
 
 .drawflow-node-content {

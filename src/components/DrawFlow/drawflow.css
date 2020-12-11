@@ -72,7 +72,7 @@
 }
 
 .drawflow svg {
-  z-index: 0;
+  z-index: 10;
   position: absolute;
   overflow: visible !important;
 }

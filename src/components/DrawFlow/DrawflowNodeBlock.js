@@ -8,6 +8,7 @@ const DrawflowNodeBlock = ({
     blockType = "common",
     ports,
     pushPort,
+    event,
 }) => {
     // params
     // {
@@ -60,6 +61,10 @@ const DrawflowNodeBlock = ({
                     }}
                     key={`drawflow-node-${type}put-${i}`}
                     className={`${type}put ${type}put_${i}`}    // TODO: ${type}put_${i} don't need?
+                    onMouseDown={e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
                 ></div>;
             arr.push(port);
         }
@@ -90,6 +95,10 @@ const DrawflowNodeBlock = ({
                 top: params.pos.y + "px",
                 left: params.pos.x + "px",
             }}
+            onMouseDown={event.select}
+            onMouseMove={e => {
+                event.moveNode(e, params.id);
+            }}
         >
             {portComponent("in")}
             <div
@@ -97,6 +106,7 @@ const DrawflowNodeBlock = ({
             >
                 <NodeContent
                     {...params}
+                    select={event.select}
                 />
             </div>
             {portComponent("out")}

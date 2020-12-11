@@ -109,6 +109,8 @@ button {
   border: 1px solid black;
   display: flex;
   align-items: center;
+  z-index: 10;
+  background-color: white;
 }
 
 .drawflow-main #drawflow .drawflow .inputs .input,
@@ -133,6 +135,28 @@ button {
   position: absolute;
   right: -8px;
   background-color: #777;
+}
+
+.drawflow-main #drawflow .drawflow path:hover {
+  stroke-width: 6px;
+  stroke: purple;
+}
+
+.drawflow-main #drawflow .drawflow .select {
+  stroke-width: 7px;
+  stroke: red;
+}
+
+.drawflow .drawflow-node-block-common.select,
+.drawflow .drawflow-node-block-common .select {
+  -webkit-box-shadow: 0 2px 15px 2px var(--border-color);
+  box-shadow: 0 2px 15px 2px var(--border-color);
+  border: 2px solid blue;
+  z-index: 20;
+}
+
+.drawflow-node-content {
+
 }
 
 /* Editing Drawflow */

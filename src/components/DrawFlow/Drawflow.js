@@ -66,6 +66,7 @@ class Drawflow extends React.Component {
                 tick: 0.1,
                 lastValue: 1,
             },
+            select: null,
         }
         this.state.nodeList = Object.entries(Nodes).reduce((acc, val) => {
             acc.push({
@@ -142,17 +143,19 @@ class Drawflow extends React.Component {
         console.log(nodeId)
     }
 
+    getPos = (clientX, clientY) => {
+        const { canvas } = this.state;
+        const { x, y, width, height } = canvas;
+        const zoom = this.state.zoom.value;
+        return  {
+            x: clientX * (width / (width * zoom)) - (x * (width / (width * zoom))),
+            y: clientY * (height / (height * zoom)) - (y * (height / (height * zoom))),
+        }
+    }
+
     addNodeToDrawFlow = (componentIndex, x, y) => {
         if(this.state.editLock) return;
-        // TODO: replace querySelector to something.
-        const { canvas } = this.state;
-        const cw = canvas.width;
-        const ch = canvas.height;
-        const zoom = this.state.zoom.value;
-        const pos = {
-            x: x * ( cw / (cw * zoom)) - (canvas.x * ( cw / (cw * zoom))),
-            y: y * ( ch / (ch * zoom)) - (canvas.y * ( ch / (ch * zoom))),
-        }
+        const pos = this.getPos(x, y);
         console.debug("drop position");
         console.debug(pos);
         // TODO: in, out -> Number to Boolean?
@@ -176,9 +179,11 @@ class Drawflow extends React.Component {
     PathComponent = (start, end, type = 'openclose') => {
         return (
             <path
+                key={+new Date() + "" + (Math.random()*10000).toFixed(0)}
                 xmlns="http://www.w3.org/2000/svg"
                 className="main-path"
                 d={createCurvature(start, end, this.state.curvature, type)}
+                onMouseDown={this.select}
             ></path>
         );
     }
@@ -186,11 +191,13 @@ class Drawflow extends React.Component {
     CircleComponent = (x, y) => {
         return (
             <circle
+                key={+new Date() + "" + (Math.random()*10000).toFixed(0)}
                 xmlns="http://www.w3.org/2000/svg"
                 className="point"
                 cx={x}
                 cy={y}
                 r={this.state.config.circleWidth}
+                onMouseDown={this.select}
             ></circle>
         );
     }
@@ -283,6 +290,73 @@ class Drawflow extends React.Component {
         console.log(JSON.stringify(exportData, null, 2));
     }
 
+    // TODO: event object로 묶어서 spread로 event 뿌리면 되게 변경하기
+    unSelect = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        // 임시 코드
+        if(document.querySelector(".select"))
+            document.querySelector(".select").classList.remove("select");
+        if(!this.state.select) return;
+        this.state.select.classList.remove("select");
+        this.setState({
+            drag: false,
+            select: null,
+        });
+    }
+
+    select = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if(this.state.select) this.state.select.classList.remove("select");
+        const { target } = e;
+        let element = target;
+        if(target.classList[0] === "drawflow-node-content") {
+            element = target.parentElement;
+        }
+
+        element.classList.add("select");
+        this.setState({
+            drag: true,
+            select: element,
+        });
+    }
+
+    setDragFalse = () => {
+        this.setState({
+            drag: false,
+        });
+    }
+
+    movePosition = (nodeId, pos) => {
+        this.setState({
+            drawflow: {
+                ...this.state.drawflow,
+                [nodeId]: {
+                    ...this.state.drawflow[nodeId],
+                    params: {
+                        ...this.state.drawflow[nodeId].params,
+                        pos: {
+                            x: this.state.drawflow[nodeId].params.pos.x + pos.x,
+                            y: this.state.drawflow[nodeId].params.pos.y + pos.y,
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    moveNode = (e, nodeId) => {
+        if(!this.state.drag) return;
+        if(e.target !== this.state.select && e.target.classList[0] !== "drawflow-node-content") return;
+        const { movementX, movementY } = e;
+        if(movementX === 0 && movementY === 0) return;
+        this.movePosition(nodeId, {
+            x: movementX,
+            y: movementY,
+        });
+    }
+
     componentDidMount() {
         // TODO: replace querySelector to something.
         const canvas = document.querySelector("#drawflow").querySelector(".drawflow");
@@ -323,6 +397,8 @@ class Drawflow extends React.Component {
                     <div
                         id="drawflow"
                         className="parent-drawflow"
+                        onMouseDown={this.unSelect}
+                        onMouseUp={this.setDragFalse}
                         onDrop={this.drop}
                         onDragOver={e => {e.preventDefault()}}
                     >
@@ -368,6 +444,10 @@ class Drawflow extends React.Component {
                                         }
                                     });
                                 }}
+                                event={{
+                                    select: this.select,
+                                    moveNode: this.moveNode,
+                                }}
                             />
                             )}
                             {Object.entries(this.state.connections).map(([key, connection]) => {
@@ -389,14 +469,16 @@ class Drawflow extends React.Component {
                                 }
                                 return (
                                     <svg
+                                        key={+new Date() + "" + (Math.random()*10000).toFixed(0)}
                                         xmlns="http://www.w3.org/2000/svg"
-                                        className="drawflow-svg"
+                                        className="drawflow-connection"
                                     >
                                         {connection.length === 0?
                                             <path
                                                 xmlns="http://www.w3.org/2000/svg"
                                                 className="main-path"
                                                 d={createCurvature(start, end, this.state.curvature, 'openclose')}
+                                                onMouseDown={this.select}
                                             ></path>
                                             :
                                             this.drawConnections(start, end, connection)

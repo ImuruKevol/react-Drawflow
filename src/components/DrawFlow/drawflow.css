@@ -76,26 +76,26 @@
   position: absolute;
   overflow: visible !important;
 }
-.drawflow .connection {
+.drawflow .drawflow-connection {
   position: absolute;
   transform: translate(9999px, 9999px);
 }
-.drawflow .connection .main-path {
+.drawflow .drawflow-connection .main-path {
   fill: none;
   stroke-width: 5px;
   stroke: steelblue;
   transform: translate(-9999px, -9999px);
 }
-.drawflow .connection .main-path:hover {
+.drawflow .drawflow-connection .main-path:hover {
   stroke: #1266ab;
   cursor: pointer;
 }
 
-.drawflow .connection .main-path.selected {
+.drawflow .drawflow-connection .main-path.selected {
   stroke: #43b993;
 }
 
-.drawflow .connection .point {
+.drawflow .drawflow-connection .point {
   cursor: move;
   stroke: black;
   stroke-width: 2;
@@ -103,8 +103,13 @@
   transform: translate(-9999px, -9999px);
 }
 
-.drawflow .connection .point.selected, .drawflow .connection .point:hover {
+.drawflow .drawflow-connection .point.selected, .drawflow .drawflow-connection .point:hover {
   fill: #1266ab;
+}
+
+.drawflow .input.select,
+.drawflow .output.select {
+  background-color: yellowgreen;
 }
 
 .drawflow .main-path {

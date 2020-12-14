@@ -148,7 +148,6 @@ class Drawflow extends React.Component {
         this.setState({
             nodeId: nodeId + 1,
         });
-        console.log(nodeId)
     }
 
     getPos = (clientX, clientY) => {
@@ -164,8 +163,6 @@ class Drawflow extends React.Component {
     addNodeToDrawFlow = (componentIndex, x, y) => {
         if(this.state.editLock) return;
         const pos = this.getPos(x, y);
-        console.debug("drop position");
-        console.debug(pos);
         // TODO: in, out -> Number to Boolean?
         this.addNode(componentIndex, {in: 1, out: 1}, pos);
     }
@@ -183,8 +180,29 @@ class Drawflow extends React.Component {
             params,
         };
     }
+    
+    findPointIndex = (start, end, pathKey) => {
+        const { connections, ports } = this.state;
+        const arr = pathKey.split("_");
+        const startKey = `${arr[0]}_out_${arr[1]}`;
+        const endKey = `${arr[2]}_in_${arr[3]}`;
+        let points = [
+            ports[startKey],
+            ...connections[pathKey],
+            ports[endKey]
+        ];
 
-    PathComponent = (start, end, type, key) => {
+        for(let i=0;i<points.length - 1;i++) {
+            const sp = points[i];
+            const ep = points[i+1];
+            if(sp.x === start.x && sp.y === start.y && ep.x === end.x && ep.y === end.y) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    PathComponent = (start, end, type, key, pathKey) => {
         return (
             <path
                 key={key}
@@ -192,6 +210,22 @@ class Drawflow extends React.Component {
                 className="main-path"
                 d={createCurvature(start, end, this.state.curvature, type)}
                 onMouseDown={this.select}
+                onDoubleClick={e => {
+                    const { connections } = this.state;
+                    const pos = this.getPos(e.clientX, e.clientY);
+                    if(!pathKey) return;
+                    const idx = this.findPointIndex(start, end, pathKey);
+                    this.setState({
+                        connections: {
+                            ...connections,
+                            [pathKey]: [
+                                ...connections[pathKey].slice(0, idx),
+                                pos,
+                                ...connections[pathKey].slice(idx)
+                            ]
+                        }
+                    });
+                }}
             ></path>
         );
     }
@@ -219,7 +253,7 @@ class Drawflow extends React.Component {
     }
 
     drawConnections = (start, end, points, idx, svgKey) => {
-        let paths = [this.PathComponent(start, points[0], "open", "draw-flow-svg-" + idx + "path-0")];
+        let paths = [this.PathComponent(start, points[0], "open", "draw-flow-svg-" + idx + "path-0", svgKey)];
         let circles = points.reduce((acc, val, i) => {
             acc.push(this.CircleComponent(val.x, val.y, "draw-flow-svg-" + idx + "circle-" + i, svgKey, i));
             return acc;
@@ -228,9 +262,9 @@ class Drawflow extends React.Component {
         for(let i=0;i<points.length - 1;i++) {
             const start = {...points[i]};
             const end = {...points[i+1]};
-            paths.push(this.PathComponent(start, end, "openclose", "draw-flow-svg-" + idx + "path-" + (i + 1)));
+            paths.push(this.PathComponent(start, end, "openclose", "draw-flow-svg-" + idx + "path-" + (i + 1), svgKey));
         }
-        paths.push(this.PathComponent(points.slice(-1)[0], end, "close", "draw-flow-svg-" + idx + "path-" + points.length));
+        paths.push(this.PathComponent(points.slice(-1)[0], end, "close", "draw-flow-svg-" + idx + "path-" + points.length, svgKey));
         return (
         <>
             {paths.map(comp => comp)}
@@ -294,7 +328,6 @@ class Drawflow extends React.Component {
         console.log(JSON.stringify(exportData, null, 2));
     }
 
-    // TODO: event object로 묶어서 spread로 event 뿌리면 되게 변경하기
     unSelect = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -655,12 +688,7 @@ class Drawflow extends React.Component {
                                         className="drawflow-connection"
                                     >
                                         {connection.length === 0?
-                                            <path
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="main-path"
-                                                d={createCurvature(start, end, this.state.curvature, 'openclose')}
-                                                onMouseDown={this.select}
-                                            ></path>
+                                            this.PathComponent(start, end, "openclose", undefined, key)
                                             :
                                             this.drawConnections(start, end, connection, idx, key)
                                         }

@@ -8,13 +8,7 @@ This app is convert [Drawflow](https://github.com/jerosoler/Drawflow) for react.
 
 ## Todo (Regularly Updating)
 
-- ~~move시 element가 영역 벗어나도 select값 이용하여 이동 계속 시키기~~
-
 - select delete(delete key, mouse right click)
-
-- dblclick point create
-
-- path create
 
 - export, clear, lock & unlock
 
@@ -25,7 +19,6 @@ This app is convert [Drawflow](https://github.com/jerosoler/Drawflow) for react.
 - node content component data state management
 
 - z-index sync...
-
 
 ## Available Scripts
 

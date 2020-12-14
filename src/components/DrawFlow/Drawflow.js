@@ -73,6 +73,7 @@ class Drawflow extends React.Component {
             },
             select: null,
             selectId: null,
+            selectPoint: null,
         }
         this.state.nodeList = Object.entries(Nodes).reduce((acc, val) => {
             acc.push({
@@ -203,7 +204,12 @@ class Drawflow extends React.Component {
                 cx={x}
                 cy={y}
                 r={this.state.config.circleWidth}
-                onMouseDown={this.select}
+                onMouseDown={e => {
+                    this.select(e, {
+                        svgKey,
+                        i,
+                    });
+                }}
                 onMouseMove={e => {
                     this.movePoint(e, svgKey, i);
                 }}
@@ -299,11 +305,12 @@ class Drawflow extends React.Component {
         this.setState({
             drag: false,
             select: null,
-            seelctId: null,
+            selectId: null,
+            selectPoint: null,
         });
     }
 
-    select = (e, nodeId) => {
+    select = (e, selectInfo) => {
         e.preventDefault();
         e.stopPropagation();
         if(this.state.select) this.state.select.classList.remove("select");
@@ -317,7 +324,8 @@ class Drawflow extends React.Component {
         this.setState({
             drag: target.classList.contains("input") || target.classList.contains("output")? false : true,
             select: element,
-            selectId: nodeId?nodeId:null,
+            selectId: selectInfo && !selectInfo.svgKey? selectInfo : null,
+            selectPoint: selectInfo && selectInfo.svgKey? selectInfo : null,
         });
     }
 
@@ -365,15 +373,6 @@ class Drawflow extends React.Component {
             y: this.state.drawflow[nodeId].params.pos.y + pos.y,
         }
         this.setPosByNodeId(nodeId, tmpPos, ports);
-    }
-
-    movePoint = (key, pos) => {
-        this.setState({
-            connections: {
-                ...this.state.connections,
-                [key]: pos,
-            }
-        });
     }
 
     moveNode = (e, nodeId) => {
@@ -429,7 +428,9 @@ class Drawflow extends React.Component {
     }
 
     setPosWithCursorOut = (e) => {
-        if(!this.state.select || !this.state.drag) return;
+        const { drag, selectId, selectPoint} = this.state;
+        if(!this.state.select || !drag) return;
+        if(!selectId && !selectPoint) return;
         const mousePos = this.getPos(e.clientX, e.clientY);
         const select = {
             top: this.state.select.style.top.slice(0, -2)*1,
@@ -444,7 +445,22 @@ class Drawflow extends React.Component {
                 x: mousePos.x - select.width/2 - select.left,
                 y: mousePos.y - select.height/2 - select.top,
             }
-            this.movePosition(this.state.selectId, pos);
+            if(selectId) this.movePosition(selectId, pos);
+            else if(selectPoint){
+                const { svgKey, i } = selectPoint;
+                const after = {
+                    x: pos.x,
+                    y: pos.y,
+                }
+                let clone = [...this.state.connections[svgKey]];
+                clone[i] = after;
+                this.setState({
+                    connections: {
+                        ...this.state.connections,
+                        [svgKey]: clone,
+                    }
+                });
+            }
         }
     }
 

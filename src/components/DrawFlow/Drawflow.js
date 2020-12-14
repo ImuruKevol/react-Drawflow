@@ -72,6 +72,7 @@ class Drawflow extends React.Component {
                 lastValue: 1,
             },
             select: null,
+            selectId: null,
         }
         this.state.nodeList = Object.entries(Nodes).reduce((acc, val) => {
             acc.push({
@@ -298,10 +299,11 @@ class Drawflow extends React.Component {
         this.setState({
             drag: false,
             select: null,
+            seelctId: null,
         });
     }
 
-    select = (e) => {
+    select = (e, nodeId) => {
         e.preventDefault();
         e.stopPropagation();
         if(this.state.select) this.state.select.classList.remove("select");
@@ -315,6 +317,7 @@ class Drawflow extends React.Component {
         this.setState({
             drag: target.classList.contains("input") || target.classList.contains("output")? false : true,
             select: element,
+            selectId: nodeId?nodeId:null,
         });
     }
 
@@ -329,6 +332,25 @@ class Drawflow extends React.Component {
         return Object.keys(ports).filter(key => key.split(/_/g)[0] === "" + nodeId);
     }
 
+    setPosByNodeId = (nodeId, pos, ports) => {
+        this.setState({
+            drawflow: {
+                ...this.state.drawflow,
+                [nodeId]: {
+                    ...this.state.drawflow[nodeId],
+                    params: {
+                        ...this.state.drawflow[nodeId].params,
+                        pos: {
+                            x: pos.x,
+                            y: pos.y,
+                        }
+                    }
+                }
+            },
+            ports,
+        });
+    }
+
     movePosition = (nodeId, pos) => {
         const portKeys = this.getPortListByNodeId(nodeId);
         const ports = portKeys.reduce((acc, portKey) => {
@@ -338,22 +360,11 @@ class Drawflow extends React.Component {
             };
             return acc;
         }, {...this.state.ports});
-        this.setState({
-            drawflow: {
-                ...this.state.drawflow,
-                [nodeId]: {
-                    ...this.state.drawflow[nodeId],
-                    params: {
-                        ...this.state.drawflow[nodeId].params,
-                        pos: {
-                            x: this.state.drawflow[nodeId].params.pos.x + pos.x,
-                            y: this.state.drawflow[nodeId].params.pos.y + pos.y,
-                        }
-                    }
-                }
-            },
-            ports,
-        });
+        const tmpPos = {
+            x: this.state.drawflow[nodeId].params.pos.x + pos.x,
+            y: this.state.drawflow[nodeId].params.pos.y + pos.y,
+        }
+        this.setPosByNodeId(nodeId, tmpPos, ports);
     }
 
     movePoint = (key, pos) => {
@@ -415,6 +426,26 @@ class Drawflow extends React.Component {
                 }
             }
         });
+    }
+
+    setPosWithCursorOut = (e) => {
+        if(!this.state.select || !this.state.drag) return;
+        const mousePos = this.getPos(e.clientX, e.clientY);
+        const select = {
+            top: this.state.select.style.top.slice(0, -2)*1,
+            left: this.state.select.style.left.slice(0, -2)*1,
+            width: this.state.select.clientWidth,
+            height: this.state.select.clientHeight,
+        };
+        const isOutX = !(mousePos.x >= select.left && mousePos.x <= select.left + select.width);
+        const isOutY = !(mousePos.y >= select.top && mousePos.y <= select.top + select.height);
+        if(isOutX || isOutY) {
+            const pos = {
+                x: mousePos.x - select.width/2 - select.left,
+                y: mousePos.y - select.height/2 - select.top,
+            }
+            this.movePosition(this.state.selectId, pos);
+        }
     }
 
     componentDidMount() {
@@ -493,7 +524,7 @@ class Drawflow extends React.Component {
                                 transform: `translate(${this.state.config.canvasTranslate.x}px, ${this.state.config.canvasTranslate.y}px)`
                             }}
                             onMouseUp={e => {}}
-                            onMouseMove={e => {}}
+                            onMouseMove={this.setPosWithCursorOut}
                             onMouseDown={e => {}}
                             onContextMenu={e => {}}
                             onKeyDown={e => {}}

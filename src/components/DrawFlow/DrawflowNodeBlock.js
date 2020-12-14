@@ -91,7 +91,9 @@ const DrawflowNodeBlock = ({
                 top: params.pos.y + "px",
                 left: params.pos.x + "px",
             }}
-            onMouseDown={event.select}
+            onMouseDown={e => {
+                event.select(e, params.id);
+            }}
             onMouseMove={e => {
                 event.moveNode(e, params.id);
             }}

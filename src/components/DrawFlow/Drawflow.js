@@ -74,6 +74,7 @@ class Drawflow extends React.Component {
             select: null,
             selectId: null,
             selectPoint: null,
+            tmpPath: null,
         }
         this.state.nodeList = Object.entries(Nodes).reduce((acc, val) => {
             acc.push({
@@ -464,6 +465,30 @@ class Drawflow extends React.Component {
         }
     }
 
+    findIndexByElement = (elmt) => {
+        const { parentElement } = elmt;
+        const arr = Array.from(parentElement.childNodes);
+        
+        for(let i=0;i<arr.length;i++) {
+            if(arr[i] === elmt) return i;
+        }
+        return -1;
+    }
+
+    createPath = (e, startId, startPort, endId, endPort) => {
+        const { target } = e;
+        if(!target.classList.contains("input")) return;
+        const key = `${startId}_${startPort}_${endId}_${endPort}`;
+        const { connections } = this.state;
+        if(connections[key] !== undefined) return;
+        this.setState({
+            connections: {
+                ...this.state.connections,
+                [key]: [],
+            }
+        });
+    }
+
     componentDidMount() {
         // TODO: replace querySelector to something.
         const canvas = document.querySelector("#drawflow").querySelector(".drawflow");
@@ -539,8 +564,38 @@ class Drawflow extends React.Component {
                             style={{
                                 transform: `translate(${this.state.config.canvasTranslate.x}px, ${this.state.config.canvasTranslate.y}px)`
                             }}
-                            onMouseUp={e => {}}
-                            onMouseMove={this.setPosWithCursorOut}
+                            onMouseUp={e => {
+                                let obj = {
+                                    tmpPath: null,
+                                }
+                                const { select } = this.state;
+                                if(select && select.classList.contains("output")) {
+                                    obj.select = null;
+                                }
+                                this.setState(obj);
+                            }}
+                            onMouseMove={e => {
+                                const { select } = this.state;
+                                if(select && select.classList.contains("output")) {
+                                    const { clientX, clientY } = e;
+                                    const idx = this.findIndexByElement(select);
+                                    const { ports, selectId } = this.state;
+                                    const startKey = `${selectId}_out_${idx + 1}`;
+
+                                    if(!ports[startKey]) return null;
+
+                                    const start = {
+                                        x: ports[startKey].x,
+                                        y: ports[startKey].y,
+                                    }
+                                    const end = this.getPos(clientX, clientY);
+                                    const path = this.PathComponent(start, end, "openclose", "draw-flow-svg-tmp-path");
+                                    this.setState({
+                                        tmpPath: path,
+                                    });
+                                }
+                                this.setPosWithCursorOut(e);
+                            }}
                             onMouseDown={e => {}}
                             onContextMenu={e => {}}
                             onKeyDown={e => {}}
@@ -568,6 +623,11 @@ class Drawflow extends React.Component {
                                 event={{
                                     select: this.select,
                                     moveNode: this.moveNode,
+                                    createPath: (e, endId, endPort) => {
+                                        const { selectId, select } = this.state;
+                                        const startPort = this.findIndexByElement(select) + 1;
+                                        this.createPath(e, selectId, startPort, endId, endPort);
+                                    }
                                 }}
                             />
                             )}
@@ -607,6 +667,12 @@ class Drawflow extends React.Component {
                                     </svg>
                                 );
                             })}
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="drawflow-connection"
+                            >
+                                {this.state.tmpPath}
+                            </svg>
                         </div>
                     </div>
                 </div>

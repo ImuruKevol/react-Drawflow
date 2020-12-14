@@ -60,7 +60,10 @@ const DrawflowNodeBlock = ({
                         }
                     }}
                     key={`drawflow-node-${type}put-${i}`}
-                    className={`${type}put ${type}put_${i}`}    // TODO: ${type}put_${i} don't need?
+                    className={`${type}put`}
+                    onMouseUp={e => {
+                        event.createPath(e, params.id, i);
+                    }}
                 ></div>;
             arr.push(port);
         }
@@ -73,14 +76,6 @@ const DrawflowNodeBlock = ({
     }
 
     return (
-    /*
-    div.parent-node(change drawflow-node-block-${blockType})
-        div#node-${num}.drawflow-node.facebook style{위치}          // 부모와 통합
-            div.inputs
-            div.drawflow_content_node
-                div {content}       // 굳이? or NodeContent?        // 부모와 통합
-            div.outputs
-    */
     // TODO: handler overriding(action)
     // If you want, change styled component. My case is not supported styled component...
     <>

@@ -42,6 +42,19 @@ const createCurvature = (start, end, curv, type) => {
   }
 }
 
+const zoom = {
+  in: () => {
+
+  },
+  out: () => {
+
+  },
+  reset: () => {
+
+  }
+}
+
 export {
   createCurvature,
+  zoom,
 }

@@ -4,7 +4,6 @@ import DrawflowZoomArea from "./DrawflowZoomArea";
 import DrawflowNodeBlock from "./DrawflowNodeBlock";
 import Nodes from "./Nodes";
 import { createCurvature } from "./drawflowHandler";
-import "./beautiful.css";
 import "./drawflow.css";
 import dummy from "./dummy";
 
@@ -12,56 +11,22 @@ class Drawflow extends React.Component {
     constructor () {
         super();
         this.state = {
-            // TODO: unuse state remove
             nodeList: [],
-            events: {},
             nodeId: 1,
-            ele_selected: null,
-            node_selected: null,
             drag: false,
             canvasDrag: false,
-
-            reroute:true,
-            reroute_fix_curvature: false,
             curvature: 0.5,
-            reroute_curvature_start_end: 0.5,
-            reroute_curvature: 0.5,
-
             config: {
                 canvasTranslate: {
                     x: 0,
                     y: 0,
                 },
                 circleWidth: 6,
+                lineWidth: 5,           // Todo
             },
-
-            drag_point: false,
-
-            editor_selected: false,
-
-            connection: false,
-            connection_ele: null,
-            connection_selected: null,
-
-            canvas_x: 0,
-            canvas_y: 0,
-
-            pos_x: 0,
-            pos_x_start: 0,
-            pos_y: 0,
-            pos_y_start: 0,
-
-            mouse_x: 0,
-            mouse_y: 0,
-            
-            line_path: 5,
-            first_click: null,
-            force_first_input: false,
-            draggable_inputs: true,
-            select_elements: null,
             canvas: {x: 0, y: 0, width: 0, height: 0},
-            drawflow: {},           // {component, params} Array
-            connections: {},              // {svg1: [point1, point2, ...], svg2: [...]}
+            drawflow: {},                   // {component, params} Array
+            connections: {},                // {svg1: [point1, point2, ...], svg2: [...]}
             ports: {},
             editLock: false,
             zoom: {
@@ -287,7 +252,6 @@ class Drawflow extends React.Component {
         let drawflow = {};
         for(const [nodeId, params] of dataEntries) {
             drawflow[nodeId] = this.makeNodeObject(params);
-            // I don't understand reroute's role. Then, remove reroute logic.
         }
         this.updateConnectionNodes();
 

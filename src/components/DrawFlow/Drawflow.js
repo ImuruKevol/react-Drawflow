@@ -38,6 +38,7 @@ class Drawflow extends React.Component {
             select: null,
             selectId: null,
             selectPoint: null,
+            showButton: null,
             tmpPath: null,
         }
         this.state.nodeList = Object.entries(Nodes).reduce((acc, val) => {
@@ -115,9 +116,9 @@ class Drawflow extends React.Component {
     }
 
     getPos = (clientX, clientY) => {
-        const { canvas } = this.state;
+        const { canvas, config } = this.state;
         const { x, y, width, height } = canvas;
-        const zoom = this.state.zoom.value;
+        const zoom = config.zoom.value;
         return  {
             x: clientX * (width / (width * zoom)) - (x * (width / (width * zoom))),
             y: clientY * (height / (height * zoom)) - (y * (height / (height * zoom))),
@@ -166,13 +167,12 @@ class Drawflow extends React.Component {
         return 0;
     }
 
-    PathComponent = (start, end, type, key, pathKey) => {
+    PathComponent = (start, end, pathKey, d) => {
         return (
             <path
-                key={key}
                 xmlns="http://www.w3.org/2000/svg"
                 className="main-path"
-                d={createCurvature(start, end, this.state.curvature, type)}
+                d={d}
                 onMouseDown={this.select}
                 onDoubleClick={e => {
                     const { connections } = this.state;
@@ -217,21 +217,30 @@ class Drawflow extends React.Component {
     }
 
     drawConnections = (start, end, points, idx, svgKey) => {
-        let paths = [this.PathComponent(start, points[0], "open", "draw-flow-svg-" + idx + "path-0", svgKey)];
         let circles = points.reduce((acc, val, i) => {
             acc.push(this.CircleComponent(val.x, val.y, "draw-flow-svg-" + idx + "circle-" + i, svgKey, i));
             return acc;
         }, []);
-
-        for(let i=0;i<points.length - 1;i++) {
-            const start = {...points[i]};
-            const end = {...points[i+1]};
-            paths.push(this.PathComponent(start, end, "openclose", "draw-flow-svg-" + idx + "path-" + (i + 1), svgKey));
+        
+        let d = null;
+        if(points.length > 0) {
+            let paths = null;
+            paths = [{start: start, end: points[0], type: "open"}];
+            for(let i=0;i<points.length - 1;i++) {
+                paths.push({start: {...points[i]}, end: {...points[i+1]}, type: "openclose"});
+            }
+            paths.push({start: points.slice(-1)[0], end: end, type: "close"});
+            d = paths.reduce((acc, val) => {
+                return acc + createCurvature(val.start, val.end, this.state.curvature, val.type) + " ";
+            }, "");
         }
-        paths.push(this.PathComponent(points.slice(-1)[0], end, "close", "draw-flow-svg-" + idx + "path-" + points.length, svgKey));
+        else {
+            d = createCurvature(start, end, this.state.curvature, "openclose");
+        }
+
         return (
         <>
-            {paths.map(comp => comp)}
+            {this.PathComponent(start, end, svgKey, d)}
             {circles.map(comp => comp)}
         </>
         );
@@ -304,6 +313,7 @@ class Drawflow extends React.Component {
             select: null,
             selectId: null,
             selectPoint: null,
+            showButton: null,
         });
     }
 
@@ -316,10 +326,12 @@ class Drawflow extends React.Component {
         if(target.classList.contains("drawflow-node-content")) {
             element = target.parentElement;
         }
-
-        element.classList.add("select");
+        const isPort = target.classList.contains("input") || target.classList.contains("output");
+        const isNotSeletElement = element.tagName === "circle" || isPort;
+        if(!isNotSeletElement)
+            element.classList.add("select");
         this.setState({
-            drag: target.classList.contains("input") || target.classList.contains("output")? false : true,
+            drag: isPort? false : true,
             select: element,
             selectId: selectInfo && !selectInfo.svgKey? selectInfo : null,
             selectPoint: selectInfo && selectInfo.svgKey? selectInfo : null,
@@ -484,6 +496,10 @@ class Drawflow extends React.Component {
         });
     }
 
+    delete = () => {
+
+    }
+
     setConfig = (key, value) => {
         this.setState({
             config: {
@@ -632,7 +648,8 @@ class Drawflow extends React.Component {
                                         y: ports[startKey].y,
                                     }
                                     const end = this.getPos(clientX, clientY);
-                                    const path = this.PathComponent(start, end, "openclose", "draw-flow-svg-tmp-path");
+                                    const d = createCurvature(start, end, this.state.curvature, "openclose");
+                                    const path = this.PathComponent(start, end, null, d);
                                     this.setState({
                                         tmpPath: path,
                                     });
@@ -660,6 +677,12 @@ class Drawflow extends React.Component {
                                             ...this.state.ports,
                                             [key]: port,
                                         }
+                                    });
+                                }}
+                                showButton={this.state.showButton}
+                                setShowButton={(nodeId) => {
+                                    this.setState({
+                                        showButton: nodeId,
                                     });
                                 }}
                                 event={{
@@ -696,9 +719,10 @@ class Drawflow extends React.Component {
                                         xmlns="http://www.w3.org/2000/svg"
                                         className="drawflow-connection"
                                     >
-                                        {connection.length === 0?
-                                            this.PathComponent(start, end, "openclose", undefined, key)
-                                            :
+                                        {
+                                        // connection.length === 0?
+                                        //     this.PathComponent(start, end, "openclose", undefined, key)
+                                        //     :
                                             this.drawConnections(start, end, connection, idx, key)
                                         }
                                     </svg>

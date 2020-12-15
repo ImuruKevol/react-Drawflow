@@ -8,6 +8,8 @@ const DrawflowNodeBlock = ({
     blockType = "common",
     ports,
     pushPort,
+    showButton,
+    setShowButton,
     event,
 }) => {
     // params
@@ -62,6 +64,7 @@ const DrawflowNodeBlock = ({
                     key={`drawflow-node-${type}put-${i}`}
                     className={`${type}put`}
                     onMouseUp={e => {
+                        // TODO: bug -> input port 클릭 시 선 생성됨
                         event.createPath(e, params.id, i);
                     }}
                 ></div>;
@@ -92,6 +95,11 @@ const DrawflowNodeBlock = ({
             onMouseMove={e => {
                 event.moveNode(e, params.id);
             }}
+            onContextMenu={e => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowButton(params.id);
+            }}
         >
             {portComponent("in")}
             <div
@@ -103,6 +111,13 @@ const DrawflowNodeBlock = ({
                 />
             </div>
             {portComponent("out")}
+            <button
+                style={{
+                    display: showButton === params.id?"block":"none"
+                }}
+                className="drawflow-delete"
+                onMouseDown={(e) => {e.stopPropagation()}}
+            >X</button>
         </div>
     </>
     );

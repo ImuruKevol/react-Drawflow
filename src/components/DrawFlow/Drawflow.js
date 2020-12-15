@@ -116,9 +116,21 @@ class Drawflow extends React.Component {
     }
 
     getPos = (clientX, clientY) => {
-        const { canvas, config } = this.state;
-        const { x, y, width, height } = canvas;
-        const zoom = config.zoom.value;
+
+        const canvas = document.querySelector("#drawflow").querySelector(".drawflow");
+        const canvasRect = canvas.getBoundingClientRect();
+        const info = {
+            x: canvasRect.x,
+            y: canvasRect.y,
+            width: canvas.clientWidth,
+            height: canvas.clientHeight,
+        };
+        const { x, y, width, height } = info;
+
+        // const { canvas, config } = this.state;
+        // const { x, y, width, height } = canvas;
+        // const zoom = config.zoom.value;
+        const zoom = this.state.config.zoom.value;
         return  {
             x: clientX * (width / (width * zoom)) - (x * (width / (width * zoom))),
             y: clientY * (height / (height * zoom)) - (y * (height / (height * zoom))),
@@ -306,8 +318,7 @@ class Drawflow extends React.Component {
         // 임시 코드
         if(document.querySelector(".select"))
             document.querySelector(".select").classList.remove("select");
-        if(!this.state.select) return;
-        this.state.select.classList.remove("select");
+        if(this.state.select) this.state.select.classList.remove("select");
         this.setState({
             drag: false,
             select: null,
@@ -335,12 +346,6 @@ class Drawflow extends React.Component {
             select: element,
             selectId: selectInfo && !selectInfo.svgKey? selectInfo : null,
             selectPoint: selectInfo && selectInfo.svgKey? selectInfo : null,
-        });
-    }
-
-    setDragFalse = () => {
-        this.setState({
-            drag: false,
         });
     }
     
@@ -419,8 +424,6 @@ class Drawflow extends React.Component {
     }
 
     canvasMove = (e) => {
-        const { canvasDrag } = this.state;
-        if(!canvasDrag) return;
         e.preventDefault();
         e.stopPropagation();
         const { movementX, movementY } = e;
@@ -529,12 +532,11 @@ class Drawflow extends React.Component {
             });
         },
         reset: () => {
-            const { zoom } = this.state.config;
-            const { value } = zoom;
-            if(value === 1) return;
+            const { config } = this.state;
+            const { zoom } = config;
             this.setState({
                 config: {
-                    ...this.state.config,
+                    ...config,
                     zoom: {
                         ...zoom,
                         value: 1,
@@ -546,6 +548,36 @@ class Drawflow extends React.Component {
                 }
             });
         }
+    }
+
+    onMouseMoveCanvas = (e) => {
+        const { canvasDrag } = this.state;
+        if(canvasDrag) this.canvasMove(e);
+
+        const { select } = this.state;
+        if(select && select.classList.contains("output")) {
+            const { clientX, clientY } = e;
+            const idx = this.findIndexByElement(select);
+            const { ports, selectId } = this.state;
+            const startKey = `${selectId}_out_${idx + 1}`;
+
+            if(!ports[startKey]) return null;
+
+            const start = {
+                x: ports[startKey].x,
+                y: ports[startKey].y,
+            }
+            // let offset = this.state.config.canvasTranslate;
+            const end = this.getPos(clientX, clientY);
+            // const end = this.getPos(clientX - offset.x, clientY - offset.y);
+
+            const d = createCurvature(start, end, this.state.curvature, "openclose");
+            const path = this.PathComponent(start, end, null, d);
+            this.setState({
+                tmpPath: path,
+            });
+        }
+        this.setPosWithCursorOut(e);
     }
 
     componentDidMount() {
@@ -595,12 +627,18 @@ class Drawflow extends React.Component {
                             this.unSelect(e);
                         }}
                         onMouseUp={e => {
-                            this.setState({
+                            let obj = {
+                                tmpPath: null,
                                 canvasDrag: false,
-                            });
-                            this.setDragFalse();
+                                drag: false,
+                            }
+                            const { select } = this.state;
+                            if(select && select.classList.contains("output")) {
+                                obj.select = null;
+                            }
+                            this.setState(obj);
                         }}
-                        onMouseMove={this.canvasMove}
+                        onMouseMove={this.onMouseMoveCanvas}
                         onDrop={this.drop}
                         onDragOver={e => {e.preventDefault()}}
                     >
@@ -613,49 +651,19 @@ class Drawflow extends React.Component {
                                 })
                             }}
                         />
-                        <DrawflowZoomArea
+                        {/* TODO 버그 발생으로 인한 주석 */}
+                        {/* <DrawflowZoomArea
                             zoomIn={this.zoom.in}
                             zoomOut={this.zoom.out}
                             zoomReset={this.zoom.reset}
-                        />
+                        /> */}
                         <div
                             className="drawflow"
                             style={{
                                 transform: `translate(${this.state.config.canvasTranslate.x}px, ${this.state.config.canvasTranslate.y}px) scale(${this.state.config.zoom.value})`
                             }}
-                            onMouseUp={e => {
-                                let obj = {
-                                    tmpPath: null,
-                                }
-                                const { select } = this.state;
-                                if(select && select.classList.contains("output")) {
-                                    obj.select = null;
-                                }
-                                this.setState(obj);
-                            }}
-                            onMouseMove={e => {
-                                const { select } = this.state;
-                                if(select && select.classList.contains("output")) {
-                                    const { clientX, clientY } = e;
-                                    const idx = this.findIndexByElement(select);
-                                    const { ports, selectId } = this.state;
-                                    const startKey = `${selectId}_out_${idx + 1}`;
-
-                                    if(!ports[startKey]) return null;
-
-                                    const start = {
-                                        x: ports[startKey].x,
-                                        y: ports[startKey].y,
-                                    }
-                                    const end = this.getPos(clientX, clientY);
-                                    const d = createCurvature(start, end, this.state.curvature, "openclose");
-                                    const path = this.PathComponent(start, end, null, d);
-                                    this.setState({
-                                        tmpPath: path,
-                                    });
-                                }
-                                this.setPosWithCursorOut(e);
-                            }}
+                            onMouseUp={e => {}}
+                            // onMouseMove={this.onMouseMoveCanvas}
                             onMouseDown={e => {}}
                             onContextMenu={e => {}}
                             onKeyDown={e => {}}

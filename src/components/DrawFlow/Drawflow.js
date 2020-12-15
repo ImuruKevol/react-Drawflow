@@ -23,19 +23,18 @@ class Drawflow extends React.Component {
                 },
                 circleWidth: 6,
                 lineWidth: 5,           // Todo
+                zoom: {
+                    value: 1,
+                    max: 2,
+                    min: 0.5,
+                    tick: 0.1,
+                },
             },
             canvas: {x: 0, y: 0, width: 0, height: 0},
             drawflow: {},                   // {component, params} Array
             connections: {},                // {svg1: [point1, point2, ...], svg2: [...]}
             ports: {},
             editLock: false,
-            zoom: {
-                value: 1,
-                max: 2,
-                min: 0.5,
-                tick: 0.1,
-                lastValue: 1,
-            },
             select: null,
             selectId: null,
             selectPoint: null,
@@ -436,29 +435,28 @@ class Drawflow extends React.Component {
             width: this.state.select.clientWidth,
             height: this.state.select.clientHeight,
         };
-        const isOutX = !(mousePos.x >= select.left && mousePos.x <= select.left + select.width);
-        const isOutY = !(mousePos.y >= select.top && mousePos.y <= select.top + select.height);
-        if(isOutX || isOutY) {
-            const pos = {
-                x: mousePos.x - select.width/2 - select.left,
-                y: mousePos.y - select.height/2 - select.top,
+        const isInX = mousePos.x >= select.left && mousePos.x <= select.left + select.width;
+        const isInY = mousePos.y >= select.top && mousePos.y <= select.top + select.height;
+        if(isInX && isInY) return;
+        const pos = {
+            x: mousePos.x - select.width/2 - select.left,
+            y: mousePos.y - select.height/2 - select.top,
+        }
+        if(selectId) this.movePosition(selectId, pos);
+        else if(selectPoint){
+            const { svgKey, i } = selectPoint;
+            const after = {
+                x: pos.x,
+                y: pos.y,
             }
-            if(selectId) this.movePosition(selectId, pos);
-            else if(selectPoint){
-                const { svgKey, i } = selectPoint;
-                const after = {
-                    x: pos.x,
-                    y: pos.y,
+            let clone = [...this.state.connections[svgKey]];
+            clone[i] = after;
+            this.setState({
+                connections: {
+                    ...this.state.connections,
+                    [svgKey]: clone,
                 }
-                let clone = [...this.state.connections[svgKey]];
-                clone[i] = after;
-                this.setState({
-                    connections: {
-                        ...this.state.connections,
-                        [svgKey]: clone,
-                    }
-                });
-            }
+            });
         }
     }
 
@@ -484,6 +482,54 @@ class Drawflow extends React.Component {
                 [key]: [],
             }
         });
+    }
+
+    setConfig = (key, value) => {
+        this.setState({
+            config: {
+                ...this.state.config,
+                [key]: value,
+            }
+        })
+    }
+
+    zoom = {
+        in: () => {
+            const { zoom } = this.state.config;
+            const { value, max, tick } = zoom;
+            if(value >= max) return;
+            this.setConfig("zoom", {
+                ...zoom,
+                value: value + tick,
+            });
+        },
+        out: () => {
+            const { zoom } = this.state.config;
+            const { value, min, tick } = zoom;
+            if(value <= min) return;
+            this.setConfig("zoom", {
+                ...zoom,
+                value: value - tick,
+            });
+        },
+        reset: () => {
+            const { zoom } = this.state.config;
+            const { value } = zoom;
+            if(value === 1) return;
+            this.setState({
+                config: {
+                    ...this.state.config,
+                    zoom: {
+                        ...zoom,
+                        value: 1,
+                    },
+                    canvasTranslate: {
+                        x: 0,
+                        y: 0,
+                    }
+                }
+            });
+        }
     }
 
     componentDidMount() {
@@ -559,7 +605,7 @@ class Drawflow extends React.Component {
                         <div
                             className="drawflow"
                             style={{
-                                transform: `translate(${this.state.config.canvasTranslate.x}px, ${this.state.config.canvasTranslate.y}px)`
+                                transform: `translate(${this.state.config.canvasTranslate.x}px, ${this.state.config.canvasTranslate.y}px) scale(${this.state.config.zoom.value})`
                             }}
                             onMouseUp={e => {
                                 let obj = {
@@ -604,10 +650,9 @@ class Drawflow extends React.Component {
                             <DrawflowNodeBlock
                                 key={"drawflow-node-block-" + idx}
                                 canvas={this.state.canvas}
-                                zoom={this.state.zoom.value}
+                                zoom={this.state.config.zoom.value}
                                 NodeContent={this.state.nodeList[node.componentIndex].component}
                                 params={node.params}
-                                // blockType="common"
                                 ports={this.state.ports}
                                 pushPort={(key, port) => {
                                     this.setState({

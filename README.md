@@ -12,7 +12,7 @@ This app is convert [Drawflow](https://github.com/jerosoler/Drawflow) for react.
 
 - export, clear, lock & unlock
 
-- zoom
+- ~~zoom~~
 
 - node content component
 

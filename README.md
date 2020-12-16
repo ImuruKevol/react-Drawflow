@@ -10,7 +10,9 @@ This app is convert [Drawflow](https://github.com/jerosoler/Drawflow) for react.
 
 - select delete(delete key, mouse right click)
 
-- lock & unlock
+- import file upload bug
+
+- point move bug(fast move: NodeContent mouse over)
 
 - node content component
 

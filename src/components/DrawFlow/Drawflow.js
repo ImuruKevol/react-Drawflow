@@ -185,8 +185,12 @@ class Drawflow extends React.Component {
                 xmlns="http://www.w3.org/2000/svg"
                 className="main-path"
                 d={d}
-                onMouseDown={this.select}
+                onMouseDown={(e) => {
+                    if(this.state.editLock) return;
+                    this.select(e);
+                }}
                 onDoubleClick={e => {
+                    if(this.state.editLock) return;
                     const { connections } = this.state;
                     const pos = this.getPos(e.clientX, e.clientY);
                     if(!pathKey) return;
@@ -212,16 +216,21 @@ class Drawflow extends React.Component {
                 key={key}
                 xmlns="http://www.w3.org/2000/svg"
                 className="point"
+                style={{
+                    cursor: this.state.editLock?"auto":"move"
+                }}
                 cx={x}
                 cy={y}
                 r={this.state.config.circleWidth}
                 onMouseDown={e => {
+                    if(this.state.editLock) return;
                     this.select(e, {
                         svgKey,
                         i,
                     });
                 }}
                 onMouseMove={e => {
+                    if(this.state.editLock) return;
                     this.movePoint(e, svgKey, i);
                 }}
             ></circle>
@@ -605,6 +614,24 @@ class Drawflow extends React.Component {
     }
 
     render () {
+        const nodeBlockEvent = this.state.editLock?
+        {
+            select: () => {},
+            moveNode: () => {},
+            createPath: () => {},
+        }
+        :
+        {
+            select: this.select,
+            moveNode: this.moveNode,
+            createPath: (e, endId, endPort) => {
+                const { selectId, select } = this.state;
+                if(selectId === endId) return;
+                const startPort = this.findIndexByElement(select) + 1;
+                this.createPath(e, selectId, startPort, endId, endPort);
+            }
+        };
+
         return (
         <div className="drawflow-container">
             {this.state.modalType &&
@@ -634,7 +661,7 @@ class Drawflow extends React.Component {
                     <div
                         className="drawflow-node-block"
                         key={"drawflow-node-" + idx}
-                        draggable
+                        draggable={!this.state.editLock}
                         onDragStart={e => {
                             this.drag(e, idx);
                         }}
@@ -672,6 +699,7 @@ class Drawflow extends React.Component {
                             importJson={this.importJson}
                             exportJson={this.exportJson}
                             clear={this.clear}
+                            editLock={this.state.editLock}
                             setEditorMode={(lock) => {
                                 this.setState({
                                     editLock: lock,
@@ -704,6 +732,7 @@ class Drawflow extends React.Component {
                                 zoom={this.state.config.zoom.value}
                                 NodeContent={this.state.nodeList[node.componentIndex].component}
                                 params={node.params}
+                                editLock={this.state.editLock}
                                 ports={this.state.ports}
                                 pushPort={(key, port) => {
                                     this.setState({
@@ -719,16 +748,7 @@ class Drawflow extends React.Component {
                                         showButton: nodeId,
                                     });
                                 }}
-                                event={{
-                                    select: this.select,
-                                    moveNode: this.moveNode,
-                                    createPath: (e, endId, endPort) => {
-                                        const { selectId, select } = this.state;
-                                        if(selectId === endId) return;
-                                        const startPort = this.findIndexByElement(select) + 1;
-                                        this.createPath(e, selectId, startPort, endId, endPort);
-                                    }
-                                }}
+                                event={nodeBlockEvent}
                             />
                             )}
                             {Object.entries(this.state.connections).map(([key, connection], idx) => {

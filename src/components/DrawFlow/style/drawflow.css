@@ -99,7 +99,6 @@ button {
 
 .drawflow-node-block-common {
   display: inline-block;
-  cursor: move;
   padding: 10px 15px;
   border: 1px solid black;
   display: flex;
@@ -206,7 +205,6 @@ button {
 }
 
 .drawflow .drawflow-connection .point {
-  cursor: move;
   stroke: black;
   stroke-width: 2;
   fill: white;

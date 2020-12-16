@@ -5,6 +5,7 @@ const DrawflowNodeBlock = ({
     zoom,
     NodeContent,
     params,
+    editLock,
     blockType = "common",
     ports,
     pushPort,
@@ -88,6 +89,7 @@ const DrawflowNodeBlock = ({
                 position: "absolute",
                 top: params.pos.y + "px",
                 left: params.pos.x + "px",
+                cursor: editLock?"auto": "move"
             }}
             onMouseDown={e => {
                 event.select(e, params.id);

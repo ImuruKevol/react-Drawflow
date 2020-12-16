@@ -306,6 +306,7 @@ class Drawflow extends React.Component {
     }
 
     importJson = () => {
+        console.log("import");
         
     }
 

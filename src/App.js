@@ -1,5 +1,5 @@
 import './App.css';
-import Drawflow from './components/DrawFlow/Drawflow';
+import Drawflow from './components/Drawflow/Drawflow';
 
 function App() {
   return (

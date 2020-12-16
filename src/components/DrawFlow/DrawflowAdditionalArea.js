@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const DrawflowAdditionalArea = (props) => {
-    const { exportJSON, clear, setEditorMode } = props;
+    const { importJson, exportJson, clear, setEditorMode } = props;
     const [lock, setLock] = useState(true);
 
     const changeMode = () => {
@@ -11,7 +11,8 @@ const DrawflowAdditionalArea = (props) => {
 
     return (
     <div className="drawflow-additional">
-        <button className="drawflow-additional-button" onClick={exportJSON}>Export</button>
+        <button className="drawflow-additional-button" onClick={importJson}>Import</button>
+        <button className="drawflow-additional-button" onClick={exportJson}>Export</button>
         <button className="drawflow-additional-button" onClick={clear}>Clear</button>
         <button className="drawflow-additional-button" onClick={changeMode}>{lock?"UnLock":"Lock"}</button>
     </div>

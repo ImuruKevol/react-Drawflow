@@ -30,7 +30,7 @@ class Drawflow extends React.Component {
                     tick: 0.1,
                 },
             },
-            canvas: {x: 0, y: 0, width: 0, height: 0},
+            // canvas: {x: 0, y: 0, width: 0, height: 0},
             drawflow: {},                   // {component, params} Array
             connections: {},                // {svg1: [point1, point2, ...], svg2: [...]}
             ports: {},
@@ -115,21 +115,20 @@ class Drawflow extends React.Component {
         });
     }
 
-    getPos = (clientX, clientY) => {
-
+    getCanvasInfo = () => {
+        // TODO : replace querySelector to someting
         const canvas = document.querySelector("#drawflow").querySelector(".drawflow");
         const canvasRect = canvas.getBoundingClientRect();
-        const info = {
+        return {
             x: canvasRect.x,
             y: canvasRect.y,
             width: canvas.clientWidth,
             height: canvas.clientHeight,
         };
-        const { x, y, width, height } = info;
+    }
 
-        // const { canvas, config } = this.state;
-        // const { x, y, width, height } = canvas;
-        // const zoom = config.zoom.value;
+    getPos = (clientX, clientY) => {
+        const { x, y, width, height } = this.getCanvasInfo();
         const zoom = this.state.config.zoom.value;
         return  {
             x: clientX * (width / (width * zoom)) - (x * (width / (width * zoom))),
@@ -303,7 +302,11 @@ class Drawflow extends React.Component {
         },
     }
 
-    export = () => {
+    importJson = () => {
+
+    }
+
+    exportJson = () => {
         const exportData = Object.entries(this.state.drawflow).reduce((acc, val) => {
             const nodeId = val[0];
             const { params } = val[1];
@@ -581,19 +584,8 @@ class Drawflow extends React.Component {
     }
 
     componentDidMount() {
-        // TODO: replace querySelector to something.
-        const canvas = document.querySelector("#drawflow").querySelector(".drawflow");
-        const canvasRect = canvas.getBoundingClientRect();
-        this.setState({
-            canvas: {
-                x: canvasRect.x,
-                y: canvasRect.y,
-                width: canvas.clientWidth,
-                height: canvas.clientHeight,
-            }
-        }, () => {
-            this.load(dummy);
-        });
+        // TODO : import data
+        this.load(dummy);
     }
 
     render () {
@@ -643,7 +635,8 @@ class Drawflow extends React.Component {
                         onDragOver={e => {e.preventDefault()}}
                     >
                         <DrawflowAdditionalArea
-                            exportJSON={this.export}
+                            importJson={this.importJson}
+                            exportJson={this.exportJson}
                             clear={this.clear}
                             setEditorMode={(lock) => {
                                 this.setState({
@@ -651,30 +644,29 @@ class Drawflow extends React.Component {
                                 })
                             }}
                         />
-                        {/* TODO 버그 발생으로 인한 주석 */}
-                        {/* <DrawflowZoomArea
+                        <DrawflowZoomArea
                             zoomIn={this.zoom.in}
                             zoomOut={this.zoom.out}
                             zoomReset={this.zoom.reset}
-                        /> */}
+                        />
                         <div
                             className="drawflow"
                             style={{
                                 transform: `translate(${this.state.config.canvasTranslate.x}px, ${this.state.config.canvasTranslate.y}px) scale(${this.state.config.zoom.value})`
                             }}
-                            onMouseUp={e => {}}
-                            // onMouseMove={this.onMouseMoveCanvas}
-                            onMouseDown={e => {}}
-                            onContextMenu={e => {}}
-                            onKeyDown={e => {}}
-                            onWheel={e => {}}
-                            onInput={e => {}}
-                            onDoubleClick={e => {}}
+                            // onMouseUp={e => {}}
+                            // onMouseMove={e => {}}
+                            // onMouseDown={e => {}}
+                            // onContextMenu={e => {}}
+                            // onKeyDown={e => {}}
+                            // onWheel={e => {}}
+                            // onInput={e => {}}
+                            // onDoubleClick={e => {}}
                         >
                             {Object.values(this.state.drawflow).map((node, idx) => 
                             <DrawflowNodeBlock
                                 key={"drawflow-node-block-" + idx}
-                                canvas={this.state.canvas}
+                                getCanvasInfo={this.getCanvasInfo}
                                 zoom={this.state.config.zoom.value}
                                 NodeContent={this.state.nodeList[node.componentIndex].component}
                                 params={node.params}
@@ -698,6 +690,7 @@ class Drawflow extends React.Component {
                                     moveNode: this.moveNode,
                                     createPath: (e, endId, endPort) => {
                                         const { selectId, select } = this.state;
+                                        if(selectId === endId) return;
                                         const startPort = this.findIndexByElement(select) + 1;
                                         this.createPath(e, selectId, startPort, endId, endPort);
                                     }
@@ -727,12 +720,7 @@ class Drawflow extends React.Component {
                                         xmlns="http://www.w3.org/2000/svg"
                                         className="drawflow-connection"
                                     >
-                                        {
-                                        // connection.length === 0?
-                                        //     this.PathComponent(start, end, "openclose", undefined, key)
-                                        //     :
-                                            this.drawConnections(start, end, connection, idx, key)
-                                        }
+                                        {this.drawConnections(start, end, connection, idx, key)}
                                     </svg>
                                 );
                             })}

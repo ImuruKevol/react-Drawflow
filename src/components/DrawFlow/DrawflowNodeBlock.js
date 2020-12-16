@@ -1,7 +1,7 @@
 import React from "react";
 
 const DrawflowNodeBlock = ({
-    canvas,
+    getCanvasInfo,
     zoom,
     NodeContent,
     params,
@@ -31,6 +31,7 @@ const DrawflowNodeBlock = ({
      */
 
     const getPortPos = (size, pos) => {
+        const canvas = getCanvasInfo();
         const widthZoom = (canvas.width / (canvas.width * zoom)) || 0;
         const heightZoom = (canvas.height / (canvas.height * zoom)) || 0;
         const x = size.width/2 + (pos.x - canvas.x ) * widthZoom;
@@ -64,7 +65,6 @@ const DrawflowNodeBlock = ({
                     key={`drawflow-node-${type}put-${i}`}
                     className={`${type}put`}
                     onMouseUp={e => {
-                        // TODO: bug -> input port 클릭 시 선 생성됨
                         event.createPath(e, params.id, i);
                     }}
                 ></div>;

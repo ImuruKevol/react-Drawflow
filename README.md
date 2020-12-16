@@ -12,9 +12,6 @@ This app is convert [Drawflow](https://github.com/jerosoler/Drawflow) for react.
 
 - export, clear, lock & unlock
 
-- zoom, canvas move : all drag event bug
-  - path create bug
-
 - node content component
 
 - node content component data state management

@@ -2,9 +2,11 @@ import React from "react";
 import DrawflowAdditionalArea from "./DrawflowAdditionalArea";
 import DrawflowZoomArea from "./DrawflowZoomArea";
 import DrawflowNodeBlock from "./DrawflowNodeBlock";
+import DrawflowModal from "./DrawflowModal";
 import Nodes from "./Nodes";
 import { createCurvature } from "./drawflowHandler";
 import "./drawflow.css";
+import { MODAL_TYPE, MODAL_LABEL } from "./Enum";
 import dummy from "./dummy";
 
 class Drawflow extends React.Component {
@@ -40,6 +42,7 @@ class Drawflow extends React.Component {
             selectPoint: null,
             showButton: null,
             tmpPath: null,
+            modalType: null,
         }
         this.state.nodeList = Object.entries(Nodes).reduce((acc, val) => {
             acc.push({
@@ -260,24 +263,24 @@ class Drawflow extends React.Component {
     load = (data) => {
         const dataEntries = Object.entries(data.nodes);
         const { connections } = data;
-        this.setState({
-            connections
-        });
+        let obj = {
+            connections,
+        };
         
         let drawflow = {};
         for(const [nodeId, params] of dataEntries) {
             drawflow[nodeId] = this.makeNodeObject(params);
         }
-        this.setState({
-            drawflow,
-        });
+        obj.drawflow = drawflow;
 
         const dataKeys = Object.keys(data.nodes).map(key => key*1).sort();
         if(dataKeys.length > 0) {
-            this.setState({
-                nodeId: dataKeys.slice(-1)*1 + 1,
-            });
+            obj.nodeId = dataKeys.slice(-1)*1 + 1;
         }
+
+        this.setState({
+            ...obj,
+        });
     }
 
     clear = () => {
@@ -302,12 +305,14 @@ class Drawflow extends React.Component {
             selectPoint: null,
             showButton: null,
             tmpPath: null,
+            modalType: null,
         });
     }
 
     importJson = () => {
-        console.log("import");
-        
+        this.setState({
+            modalType: MODAL_TYPE.import,
+        });
     }
 
     exportJson = () => {
@@ -604,9 +609,27 @@ class Drawflow extends React.Component {
     render () {
         return (
         <div className="drawflow-container">
-            <header>
-                <h2>Drawflow</h2>
-            </header>
+            {this.state.modalType &&
+            <DrawflowModal
+                type={this.state.modalType}
+                title={MODAL_LABEL[this.state.modalType]}
+                close={() => {
+                    this.setState({
+                        modalType: null,
+                    });
+                }}
+                event={{
+                    importData: (data) => {
+                        try {
+                            this.load(data);
+                        }
+                        catch{
+                            alert("Is not regular format.");
+                        }
+                    }
+                }}
+            />
+            }
             <div className="drawflow-wrapper">
                 <div className="drawflow-node-list">
                     {this.state.nodeList.map((node, idx) =>

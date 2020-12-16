@@ -10,7 +10,7 @@ This app is convert [Drawflow](https://github.com/jerosoler/Drawflow) for react.
 
 - select delete(delete key, mouse right click)
 
-- export, clear, lock & unlock
+- lock & unlock
 
 - node content component
 

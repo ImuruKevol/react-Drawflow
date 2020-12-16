@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { MODAL_TYPE } from "./Enum";
 
 const ImportModal = (props) => {
     const { title, close, importData } = props;
@@ -9,11 +8,12 @@ const ImportModal = (props) => {
     const getJson = (e) => {
         const { files } = e.target;
         if(files.length === 0) return;
+        const file = files[0];
+        if(file.name.split(".").slice(-1) !== "json") return;
         const fileReader = new FileReader();
         fileReader.addEventListener("load", e => {
             setJson(e.target.result);
         })
-        const file = files[0];
         fileReader.readAsText(file);
     }
 
@@ -71,22 +71,4 @@ const ImportModal = (props) => {
     );
 }
 
-const modalMap = {
-    [MODAL_TYPE.import]: ImportModal,
-}
-
-const DrawflowModal = (props) => {
-    const { type, close, title, event } = props;
-    const Component = modalMap[type];
-    return (
-    <div className="drawflow-modal-container">
-        <Component
-            title={title}
-            close={close}
-            {...event}
-        />
-    </div>
-    );
-}
-
-export default DrawflowModal;
+export default ImportModal;

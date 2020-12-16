@@ -1,13 +1,13 @@
 import React from "react";
-import DrawflowAdditionalArea from "./DrawflowAdditionalArea";
-import DrawflowZoomArea from "./DrawflowZoomArea";
+import DrawflowAdditionalArea from "./ButtonArea/DrawflowAdditionalArea";
+import DrawflowZoomArea from "./ButtonArea/DrawflowZoomArea";
 import DrawflowNodeBlock from "./DrawflowNodeBlock";
-import DrawflowModal from "./DrawflowModal";
+import DrawflowModal from "./Modal";
 import Nodes from "./Nodes";
 import { createCurvature } from "./drawflowHandler";
-import "./drawflow.css";
-import { MODAL_TYPE, MODAL_LABEL } from "./Enum";
-import dummy from "./dummy";
+import { MODAL_TYPE, MODAL_LABEL } from "../../common/Enum";
+import dummy from "./dummy";    // TODO remove this line
+import "./style/drawflow.css";
 
 class Drawflow extends React.Component {
     constructor () {
@@ -32,7 +32,6 @@ class Drawflow extends React.Component {
                     tick: 0.1,
                 },
             },
-            // canvas: {x: 0, y: 0, width: 0, height: 0},
             drawflow: {},                   // {component, params} Array
             connections: {},                // {svg1: [point1, point2, ...], svg2: [...]}
             ports: {},
@@ -142,7 +141,6 @@ class Drawflow extends React.Component {
     addNodeToDrawFlow = (componentIndex, x, y) => {
         if(this.state.editLock) return;
         const pos = this.getPos(x, y);
-        // TODO: in, out -> Number to Boolean?
         this.addNode(componentIndex, {in: 1, out: 1}, pos);
     }
 
@@ -602,7 +600,7 @@ class Drawflow extends React.Component {
     }
 
     componentDidMount() {
-        // TODO : import data
+        // TODO : import data from prev page by id
         this.load(dummy);
     }
 
@@ -760,12 +758,14 @@ class Drawflow extends React.Component {
                                     </svg>
                                 );
                             })}
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="drawflow-connection"
-                            >
-                                {this.state.tmpPath}
-                            </svg>
+                            {this.state.tmpPath &&
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="drawflow-connection"
+                                >
+                                    {this.state.tmpPath}
+                                </svg>
+                            }
                         </div>
                     </div>
                 </div>

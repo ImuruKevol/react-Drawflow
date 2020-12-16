@@ -257,10 +257,6 @@ class Drawflow extends React.Component {
         );
     }
 
-    updateConnectionNodes = () => {
-
-    }
-
     load = (data) => {
         const dataEntries = Object.entries(data.nodes);
         const { connections } = data;
@@ -272,8 +268,6 @@ class Drawflow extends React.Component {
         for(const [nodeId, params] of dataEntries) {
             drawflow[nodeId] = this.makeNodeObject(params);
         }
-        this.updateConnectionNodes();
-
         this.setState({
             drawflow,
         });
@@ -287,32 +281,50 @@ class Drawflow extends React.Component {
     }
 
     clear = () => {
-
-    }
-
-    zoom = {
-        in() {
-
-        },
-        out() {
-
-        },
-        reset() {
-
-        },
+        this.setState({
+            nodeId: 1,
+            config: {
+                ...this.state.config,
+                canvasTranslate: {
+                    x: 0,
+                    y: 0,
+                  },
+                zoom: {
+                    ...this.state.config.zoom,
+                    value: 1,
+                },
+            },
+            drawflow: {},
+            connections: {},
+            ports: {},
+            select: null,
+            selectId: null,
+            selectPoint: null,
+            showButton: null,
+            tmpPath: null,
+        });
     }
 
     importJson = () => {
-
+        
     }
 
     exportJson = () => {
-        const exportData = Object.entries(this.state.drawflow).reduce((acc, val) => {
-            const nodeId = val[0];
-            const { params } = val[1];
-            return Object.assign(acc, {[nodeId]: params});
+        const { drawflow, connections } = this.state;
+        const nodes = Object.entries(drawflow).reduce((acc, [nodeId, data]) => {
+            return {
+                ...acc,
+                [nodeId]: data.params,
+            }
         }, {});
-        console.log(JSON.stringify(exportData, null, 2));
+        const exportData = {
+            nodes,
+            connections,
+        };
+        if(!navigator.clipboard || !navigator.clipboard.writeText) return;
+        navigator.clipboard.writeText(JSON.stringify(exportData, null, 2)).then(() => {
+            alert("json 데이터가 클립보드에 저장되었습니다.");
+        });
     }
 
     unSelect = (e) => {

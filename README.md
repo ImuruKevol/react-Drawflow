@@ -8,11 +8,9 @@ This app is convert [Drawflow](https://github.com/jerosoler/Drawflow) for react.
 
 ## Todo (Regularly Updating)
 
-- select delete(delete key, mouse right click)
+- optimization
 
-- import file upload bug
-
-- point move bug(fast move: NodeContent mouse over)
+- TODO tag
 
 - node content component
 

@@ -9,7 +9,7 @@ const ImportModal = (props) => {
         const { files } = e.target;
         if(files.length === 0) return;
         const file = files[0];
-        if(file.name.split(".").slice(-1) !== "json") return;
+        if(file.name.split(".").slice(-1)[0].toLowerCase() !== "json") return;
         const fileReader = new FileReader();
         fileReader.addEventListener("load", e => {
             setJson(e.target.result);
@@ -26,13 +26,31 @@ const ImportModal = (props) => {
         <div style={{marginBottom: "15px"}}>
             <span>
                 <label>
-                    <input type="radio" name="import-type" defaultChecked={importType} onClick={() => {setImportType(true)}} />
+                    <input
+                        type="radio"
+                        name="import-type"
+                        defaultChecked={importType}
+                        onClick={() => {
+                            if(importType) return;
+                            setImportType(true);
+                            setJson("");
+                        }}
+                    />
                     import by text
                 </label>
             </span>
             <span>
                 <label>
-                    <input type="radio" name="import-type" defaultChecked={!importType} onClick={() => {setImportType(false)}} />
+                    <input
+                        type="radio"
+                        name="import-type"
+                        defaultChecked={!importType}
+                        onClick={() => {
+                            if(!importType) return;
+                            setImportType(false);
+                            setJson("");
+                        }}
+                    />
                     import by json file
                 </label>
             </span>

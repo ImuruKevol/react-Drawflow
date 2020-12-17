@@ -157,26 +157,57 @@ class Drawflow extends React.Component {
             params,
         };
     }
-    
-    findPointIndex = (start, end, pathKey) => {
-        const { connections, ports } = this.state;
-        const arr = pathKey.split("_");
-        const startKey = `${arr[0]}_out_${arr[1]}`;
-        const endKey = `${arr[2]}_in_${arr[3]}`;
-        let points = [
-            ports[startKey],
-            ...connections[pathKey],
-            ports[endKey]
-        ];
 
-        for(let i=0;i<points.length - 1;i++) {
-            const sp = points[i];
-            const ep = points[i+1];
-            if(sp.x === start.x && sp.y === start.y && ep.x === end.x && ep.y === end.y) {
-                return i;
-            }
+    customSort = (arrX, arrY, quadrant) => {
+        let result = [];
+        let cloneX = [...arrX], cloneY = [...arrY];
+
+        const pop = (popXY) => {
+            cloneX = cloneX.filter(item => popXY.x !== item);
+            cloneY = cloneY.filter(item => popXY.y !== item);
         }
-        return 0;
+        const next = () => {
+            const result = quadrant === 1 ? {x: Math.min(...cloneX), y: Math.min(...cloneY)} :
+                           quadrant === 2 ? {x: Math.max(...cloneX), y: Math.min(...cloneY)} :
+                           quadrant === 3 ? {x: Math.max(...cloneX), y: Math.max(...cloneY)} :
+                                            {x: Math.min(...cloneX), y: Math.max(...cloneY)};
+            pop(result);
+            return result;
+        }
+        while(cloneX.length > 0) {
+            result.push(next());
+        }
+        return result;
+      }
+
+    sortPoints = (points, start, end) => {
+        let result = null;
+        let arrayX = [];
+        let arrayY = [];
+        points.reduce((_, val) => {
+            arrayX.push(val.x);
+            arrayY.push(val.y);
+            return null;
+        }, null);
+
+        if(start.x <= end.x && start.y <= end.y) {
+            // 1 quadrant
+            result = this.customSort(arrayX, arrayY, 1);
+        }
+        else if(start.x <= end.x && start.y > end.y) {
+            // 4 quadrant
+            result = this.customSort(arrayX, arrayY, 4);
+        }
+        else if(start.x > end.x && start.y <= end.y) {
+            // 2 quadrant
+            result = this.customSort(arrayX, arrayY, 2);
+        }
+        else {  // start.x > end.x && start.y > end.y
+            // 3 quadrant
+            result = this.customSort(arrayX, arrayY, 3);
+        }
+
+        return result;
     }
 
     PathComponent = (start, end, pathKey, d) => {
@@ -194,15 +225,11 @@ class Drawflow extends React.Component {
                     const { connections } = this.state;
                     const pos = this.getPos(e.clientX, e.clientY);
                     if(!pathKey) return;
-                    const idx = this.findPointIndex(start, end, pathKey);
+                    const newPoints = this.sortPoints([...connections[pathKey], pos], start, end);
                     this.setState({
                         connections: {
                             ...connections,
-                            [pathKey]: [
-                                ...connections[pathKey].slice(0, idx),
-                                pos,
-                                ...connections[pathKey].slice(idx)
-                            ]
+                            [pathKey]: newPoints,
                         }
                     });
                 }}
@@ -232,6 +259,17 @@ class Drawflow extends React.Component {
                 onMouseMove={e => {
                     if(this.state.editLock) return;
                     this.movePoint(e, svgKey, i);
+                }}
+                onDoubleClick={e => {
+                    if(this.state.editLock) return;
+                    const svgArr = this.state.connections[svgKey];
+                    const newSvgArr = svgArr.filter((_, idx) => idx !== i);
+                    this.setState({
+                        connections: {
+                            ...this.state.connections,
+                            [svgKey]: newSvgArr,
+                        }
+                    });
                 }}
             ></circle>
         );

@@ -6,7 +6,7 @@ import DrawflowModal from "./Modal";
 import Nodes from "./Nodes";
 import { createCurvature } from "./drawflowHandler";
 import { MODAL_TYPE, MODAL_LABEL } from "../../common/Enum";
-import dummy from "./dummy";    // TODO remove this line
+// import dummy from "./dummy";    // TODO remove this line
 import "./style/drawflow.css";
 
 class Drawflow extends React.Component {
@@ -457,7 +457,6 @@ class Drawflow extends React.Component {
         const { drag, select } = this.state;
         if(!drag) return;
         if(e.currentTarget !== select) return;
-        // if(e.target !== this.state.select && !e.target.classList.contains("drawflow-node-content")) return;
         const { movementX, movementY } = e;
         if(movementX === 0 && movementY === 0) return;
 
@@ -468,21 +467,23 @@ class Drawflow extends React.Component {
     }
 
     movePoint = (e, svgKey, i) => {
-        if(!this.state.drag) return;
-        if(e.target !== this.state.select) return;
-
+        const { drag, select } = this.state;
+        if(!drag) return;
+        if(e.target !== select) return;
         const { movementX, movementY } = e;
         if(movementX === 0 && movementY === 0) return;
         
+        const { connections } = this.state;
+        const oldPos = connections[svgKey][i];
         const after = {
-            x: this.state.connections[svgKey][i].x + movementX,
-            y: this.state.connections[svgKey][i].y + movementY,
+            x: oldPos.x + movementX,
+            y: oldPos.y + movementY,
         }
-        let clone = [...this.state.connections[svgKey]];
+        let clone = [...connections[svgKey]];
         clone[i] = after;
         this.setState({
             connections: {
-                ...this.state.connections,
+                ...connections,
                 [svgKey]: clone,
             }
         });
@@ -506,8 +507,10 @@ class Drawflow extends React.Component {
 
     setPosWithCursorOut = (e) => {
         const { drag, selectId, selectPoint} = this.state;
-        if(!this.state.select || !drag) return;
-        if(!selectId && !selectPoint) return;
+        // typeof selectId === string -> path
+        const exitCond = (!this.state.select || !drag) || (!selectId && !selectPoint) || ((typeof selectId) === (typeof ""));
+        if(exitCond) return;
+
         const mousePos = this.getPos(e.clientX, e.clientY);
         const select = {
             top: this.state.select.style.top.slice(0, -2)*1,
@@ -704,7 +707,7 @@ class Drawflow extends React.Component {
 
     componentDidMount() {
         // TODO : import data from prev page by id
-        this.load(dummy);
+        // this.load(dummy);
         document.addEventListener("keydown", this.onKeyDown);
     }
 

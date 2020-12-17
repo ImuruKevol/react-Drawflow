@@ -92,7 +92,9 @@ const DrawflowNodeBlock = ({
                 cursor: editLock?"auto": "move"
             }}
             onMouseDown={e => {
-                event.select(e, params.id);
+                if(e.currentTarget.classList.contains(`drawflow-node-block-${blockType}`)) {
+                    event.select(e, params.id);
+                }
             }}
             onMouseMove={e => {
                 event.moveNode(e, params.id);

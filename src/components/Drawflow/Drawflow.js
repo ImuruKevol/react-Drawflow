@@ -217,7 +217,7 @@ class Drawflow extends React.Component {
                 d={d}
                 onMouseDown={(e) => {
                     if(this.state.editLock) return;
-                    this.select(e);
+                    this.select(e, pathKey);
                 }}
                 onDoubleClick={e => {
                     if(this.state.editLock) return;
@@ -378,7 +378,7 @@ class Drawflow extends React.Component {
     }
 
     unSelect = (e) => {
-        e.preventDefault();
+        // e.preventDefault();
         e.stopPropagation();
         // 임시 코드
         if(document.querySelector(".select"))
@@ -454,9 +454,10 @@ class Drawflow extends React.Component {
     }
 
     moveNode = (e, nodeId) => {
-        if(!this.state.drag) return;
+        const { drag, select } = this.state;
+        if(!drag) return;
+        if(e.currentTarget !== select) return;
         // if(e.target !== this.state.select && !e.target.classList.contains("drawflow-node-content")) return;
-
         const { movementX, movementY } = e;
         if(movementX === 0 && movementY === 0) return;
 
@@ -602,6 +603,16 @@ class Drawflow extends React.Component {
         this.setState(obj);
     }
 
+    pathDelete = () => {
+        if(this.state.editLock) return;
+        const { selectId, connections } = this.state;
+        let newConnections = {...connections};
+        delete newConnections[selectId];
+        this.setState({
+            connections: newConnections,
+        });
+    }
+
     setConfig = (key, value) => {
         this.setState({
             config: {
@@ -680,7 +691,15 @@ class Drawflow extends React.Component {
     }
 
     onKeyDown = (e) => {
-        if(e.key === "Delete") this.nodeDelete();
+        if(e.key === "Delete"){
+            const { select } = this.state;
+            if(select && select.tagName === "path") {
+                this.pathDelete();
+            }
+            else {
+                this.nodeDelete();
+            }
+        }
     }
 
     componentDidMount() {
@@ -756,6 +775,7 @@ class Drawflow extends React.Component {
                         id="drawflow"
                         className="parent-drawflow"
                         onMouseDown={e => {
+                            if(e.target.id !== "drawflow" && !e.target.classList.contains("drawflow")) return;
                             this.setState({
                                 canvasDrag: true,
                             });

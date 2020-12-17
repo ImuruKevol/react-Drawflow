@@ -1,7 +1,11 @@
 import React from 'react';
 
 const Collector = (props) => {
-    return (<>Collector</>);
+    return (<>
+        <input type="text" onKeyDown={e => {
+            e.stopPropagation();
+        }} />
+    </>);
 }
 
 export default Collector;

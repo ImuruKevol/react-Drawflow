@@ -24,7 +24,6 @@ class Drawflow extends React.Component {
                     y: 0,
                 },
                 circleWidth: 6,
-                lineWidth: 5,           // Todo
                 zoom: {
                     value: 1,
                     max: 2,
@@ -395,7 +394,6 @@ class Drawflow extends React.Component {
     }
 
     select = (e, selectInfo) => {
-        e.preventDefault();
         e.stopPropagation();
         if(this.state.select) this.state.select.classList.remove("select");
         const { target } = e;
@@ -457,7 +455,7 @@ class Drawflow extends React.Component {
 
     moveNode = (e, nodeId) => {
         if(!this.state.drag) return;
-        if(e.target !== this.state.select && !e.target.classList.contains("drawflow-node-content")) return;
+        // if(e.target !== this.state.select && !e.target.classList.contains("drawflow-node-content")) return;
 
         const { movementX, movementY } = e;
         if(movementX === 0 && movementY === 0) return;
@@ -565,8 +563,43 @@ class Drawflow extends React.Component {
         });
     }
 
-    delete = () => {
-
+    nodeDelete = () => {
+        if(this.state.editLock) return;
+        const { connections, drawflow, ports, selectId } = this.state;
+        if(!selectId) return;
+        let obj = {
+            connections: {...connections},
+            ports: {...ports},
+            drawflow: {...drawflow},
+        }
+        // 1. find in connections
+        Object.keys(obj.connections).reduce((_, val) => {
+            const arr = val.split("_");
+            if(arr[0]*1 === selectId || arr[2]*1 === selectId) {
+                delete obj.connections[val];
+            }
+            return null;
+        }, null);
+        // 2. find in ports
+        Object.keys(obj.ports).reduce((_, val) => {
+            const arr = val.split("_");
+            if(arr[0]*1 === selectId) {
+                delete obj.ports[val];
+            }
+            return null;
+        }, null);
+        // 3. find in drawflow
+        delete obj.drawflow[selectId];
+        // 4. state clear
+        obj = {
+            ...obj,
+            select: null,
+            selectId: null,
+            selectPoint: null,
+            showButton: null,
+        }
+        // 4. set state
+        this.setState(obj);
     }
 
     setConfig = (key, value) => {
@@ -646,9 +679,18 @@ class Drawflow extends React.Component {
         this.setPosWithCursorOut(e);
     }
 
+    onKeyDown = (e) => {
+        if(e.key === "Delete") this.nodeDelete();
+    }
+
     componentDidMount() {
         // TODO : import data from prev page by id
         this.load(dummy);
+        document.addEventListener("keydown", this.onKeyDown);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener("keydown", this.onKeyDown);
     }
 
     render () {
@@ -657,6 +699,7 @@ class Drawflow extends React.Component {
             select: () => {},
             moveNode: () => {},
             createPath: () => {},
+            nodeDelete: () => {},
         }
         :
         {
@@ -667,7 +710,8 @@ class Drawflow extends React.Component {
                 if(selectId === endId) return;
                 const startPort = this.findIndexByElement(select) + 1;
                 this.createPath(e, selectId, startPort, endId, endPort);
-            }
+            },
+            nodeDelete: this.nodeDelete,
         };
 
         return (

@@ -118,7 +118,7 @@ const DrawflowNodeBlock = ({
                     display: showButton === params.id?"block":"none"
                 }}
                 className="drawflow-delete"
-                onMouseDown={(e) => {e.stopPropagation()}}
+                onMouseDown={(e) => {e.stopPropagation(); event.nodeDelete()}}
             >X</button>
         </div>
     </>

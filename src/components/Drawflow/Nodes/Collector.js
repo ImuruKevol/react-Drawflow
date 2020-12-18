@@ -1,14 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const Collector = (props) => {
     const { data, setData } = props;
-    // console.log(data)
+
     return (<>
         <strong>Collector: 10032</strong>
         <div>
-            <input type="text" onKeyDown={e => {
-                e.stopPropagation();
-            }} />
+            <input
+                type="text"
+                defaultValue={data.value?data.value:""}
+                onKeyDown={e => {
+                    e.stopPropagation();
+                }}
+                onBlur={e => {
+                    setData({
+                        ...data,
+                        value: e.target.value,
+                    })
+                }}
+            />
         </div>
     </>);
 }

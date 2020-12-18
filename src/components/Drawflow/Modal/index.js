@@ -1,9 +1,11 @@
 import React from "react";
 import ImportModal from "./ImportModal";
+import NodeModal from "./NodeModal";
 import { MODAL_TYPE } from "../../../common/Enum";
 
 const modalMap = {
     [MODAL_TYPE.import]: ImportModal,
+    [MODAL_TYPE.node]: NodeModal,
 }
 
 const DrawflowModal = (props) => {

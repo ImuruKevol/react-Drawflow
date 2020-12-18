@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { MODAL_TYPE } from "../../common/Enum";
 
 const DrawflowNodeBlock = ({
     getCanvasInfo,
@@ -11,6 +12,7 @@ const DrawflowNodeBlock = ({
     pushPorts,
     showButton,
     setShowButton,
+    showModal,
     event,
 }) => {
     // params
@@ -24,12 +26,6 @@ const DrawflowNodeBlock = ({
     //         y: Double,
     //     },
     // };
-
-    /**
-     * blockType
-     * - common
-     * - custom(naming is free, but need possible className)
-     */
 
     const [refs, setRefs] = useState({
         inputs: [],
@@ -47,40 +43,12 @@ const DrawflowNodeBlock = ({
         return {x, y};
     }
 
-    // input port, output port coponent
     const portComponent = (type) => {
         let arr = [];
 
         for(let i=1;i<=params.port[type];i++) {
             const port = 
                 <div
-                    // ref={ref => {
-                    //     if(ref && !refs[`${type}put`][i]) {
-                    //         // console.log(params.id, `${type}put`, i);
-                    //         refs[`${type}put`][i] = ref;
-                    //         // setRefs({
-                    //         //     ...refs,
-                    //         //     [`${type}put`]: {
-                    //         //         ...refs[`${type}put`],
-                    //         //         [i]: ref,
-                    //         //     }
-                    //         // });
-                    //     }
-                    //     // TODO: need optimizing
-                    //     const key = `${params.id}_${type}_${i}`;
-                    //     if(ref && ref.getBoundingClientRect && !ports[key]) {
-                    //         const rect = ref.getBoundingClientRect();
-                    //         const size = {
-                    //             width: ref.offsetWidth,
-                    //             height: ref.offsetHeight,
-                    //         };
-                    //         const pos = {
-                    //             x: rect.x,
-                    //             y: rect.y,
-                    //         };
-                    //         pushPort(key, getPortPos(size, pos))
-                    //     }
-                    // }}
                     key={`drawflow-node-${type}put-${i}`}
                     className={`${type}put`}
                     onMouseUp={e => {
@@ -128,7 +96,6 @@ const DrawflowNodeBlock = ({
 
     useEffect(() => {
         if(refs.inputs && refs.outputs && params.port.in === refs.inputs.length && params.port.out === refs.outputs.length) {
-            console.log("test")
             let newPorts = {};
             newPorts = Object.assign(newPorts, refs.inputs.reduce((acc, elmt, i) => {
                 return Object.assign(acc, getPortPos("in", i + 1, elmt));
@@ -141,7 +108,6 @@ const DrawflowNodeBlock = ({
     }, [refs]);
 
     return (
-    // TODO: handler overriding(action)
     // If you want, change styled component. My case is not supported styled component...
     <>
         <div
@@ -170,11 +136,15 @@ const DrawflowNodeBlock = ({
             {portComponent("in")}
             <div
                 className="drawflow-node-content"
+                onDoubleClick={() => {
+                    showModal(MODAL_TYPE.node);
+                }}
             >
                 <NodeContent
                     {...params}
-                    // select={event.select}
-                    setData={event.setData}
+                    setData={(data) => {
+                        event.setData(params.id, data);
+                    }}
                 />
             </div>
             {portComponent("out")}

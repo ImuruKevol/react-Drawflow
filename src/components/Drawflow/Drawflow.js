@@ -6,7 +6,7 @@ import DrawflowModal from "./Modal";
 import Nodes from "./Nodes";
 import { createCurvature } from "./drawflowHandler";
 import { MODAL_TYPE, MODAL_LABEL } from "../../common/Enum";
-// import dummy from "./dummy";    // TODO remove this line
+import dummy from "./dummy";    // TODO remove this line
 import "./style/drawflow.css";
 
 class Drawflow extends React.Component {
@@ -666,13 +666,14 @@ class Drawflow extends React.Component {
 
     setData = (nodeId, data) => {
         const { drawflow } = this.state;
+        console.log(drawflow[nodeId])
         this.setState({
             drawflow: {
                 ...drawflow,
-                nodeId: {
+                [nodeId]: {
                     ...drawflow[nodeId],
                     params: {
-                        ...drawflow[nodeId],
+                        ...drawflow[nodeId].params,
                         data: data,
                     }
                 }
@@ -738,7 +739,7 @@ class Drawflow extends React.Component {
 
     componentDidMount() {
         // TODO : import data from prev page by id
-        // this.load(dummy);
+        this.load(dummy);
         document.addEventListener("keydown", this.onKeyDown);
     }
 
@@ -877,6 +878,11 @@ class Drawflow extends React.Component {
                                 setShowButton={(nodeId) => {
                                     this.setState({
                                         showButton: nodeId,
+                                    });
+                                }}
+                                showModal={(type) => {
+                                    this.setState({
+                                        modalType: type,
                                     });
                                 }}
                                 event={nodeBlockEvent}

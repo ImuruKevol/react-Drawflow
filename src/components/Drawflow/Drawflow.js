@@ -49,6 +49,7 @@ class Drawflow extends React.Component {
             });
             return acc;
         }, []);
+        this.tmpPorts = {};
     }
 
     drag = (e, idx) => {
@@ -663,6 +664,36 @@ class Drawflow extends React.Component {
         }
     }
 
+    setData = (nodeId, data) => {
+        const { drawflow } = this.state;
+        this.setState({
+            drawflow: {
+                ...drawflow,
+                nodeId: {
+                    ...drawflow[nodeId],
+                    params: {
+                        ...drawflow[nodeId],
+                        data: data,
+                    }
+                }
+            }
+        });
+    }
+
+    pushPorts = (ports) => {
+        this.tmpPorts = {
+            ...this.tmpPorts,
+            ...this.state.ports,
+            ...ports,
+        }
+        this.setState({
+            ports: {
+                ...this.state.ports,
+                ...this.tmpPorts,
+            }
+        });
+    }
+
     onMouseMoveCanvas = (e) => {
         const { canvasDrag } = this.state;
         if(canvasDrag) this.canvasMove(e);
@@ -722,6 +753,7 @@ class Drawflow extends React.Component {
             moveNode: () => {},
             createPath: () => {},
             nodeDelete: () => {},
+            setData: () => {},
         }
         :
         {
@@ -734,6 +766,7 @@ class Drawflow extends React.Component {
                 this.createPath(e, selectId, startPort, endId, endPort);
             },
             nodeDelete: this.nodeDelete,
+            setData: this.setData,
         };
 
         return (
@@ -839,14 +872,7 @@ class Drawflow extends React.Component {
                                 params={node.params}
                                 editLock={this.state.editLock}
                                 ports={this.state.ports}
-                                pushPort={(key, port) => {
-                                    this.setState({
-                                        ports: {
-                                            ...this.state.ports,
-                                            [key]: port,
-                                        }
-                                    });
-                                }}
+                                pushPorts={this.pushPorts}
                                 showButton={this.state.showButton}
                                 setShowButton={(nodeId) => {
                                     this.setState({

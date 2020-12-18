@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 const DrawflowNodeBlock = ({
     getCanvasInfo,
@@ -8,7 +8,7 @@ const DrawflowNodeBlock = ({
     editLock,
     blockType = "common",
     ports,
-    pushPort,
+    pushPorts,
     showButton,
     setShowButton,
     event,
@@ -31,13 +31,20 @@ const DrawflowNodeBlock = ({
      * - custom(naming is free, but need possible className)
      */
 
-    const getPortPos = (size, pos) => {
+    const [refs, setRefs] = useState({
+        inputs: [],
+        outputs: [],
+    });
+    const ref = useRef(null);
+
+    const getPortPosWithZoom = (size, pos) => {
         const canvas = getCanvasInfo();
         const widthZoom = (canvas.width / (canvas.width * zoom)) || 0;
         const heightZoom = (canvas.height / (canvas.height * zoom)) || 0;
         const x = size.width/2 + (pos.x - canvas.x ) * widthZoom;
         const y = size.height/2 + (pos.y - canvas.y ) * heightZoom;
-        return {x, y}
+
+        return {x, y};
     }
 
     // input port, output port coponent
@@ -47,22 +54,33 @@ const DrawflowNodeBlock = ({
         for(let i=1;i<=params.port[type];i++) {
             const port = 
                 <div
-                    ref={ref => {
-                        // TODO: need optimizing
-                        const key = `${params.id}_${type}_${i}`;
-                        if(ref && ref.getBoundingClientRect && !ports[key]) {
-                            const rect = ref.getBoundingClientRect();
-                            const size = {
-                                width: ref.offsetWidth,
-                                height: ref.offsetHeight,
-                            };
-                            const pos = {
-                                x: rect.x,
-                                y: rect.y,
-                            };
-                            pushPort(key, getPortPos(size, pos))
-                        }
-                    }}
+                    // ref={ref => {
+                    //     if(ref && !refs[`${type}put`][i]) {
+                    //         // console.log(params.id, `${type}put`, i);
+                    //         refs[`${type}put`][i] = ref;
+                    //         // setRefs({
+                    //         //     ...refs,
+                    //         //     [`${type}put`]: {
+                    //         //         ...refs[`${type}put`],
+                    //         //         [i]: ref,
+                    //         //     }
+                    //         // });
+                    //     }
+                    //     // TODO: need optimizing
+                    //     const key = `${params.id}_${type}_${i}`;
+                    //     if(ref && ref.getBoundingClientRect && !ports[key]) {
+                    //         const rect = ref.getBoundingClientRect();
+                    //         const size = {
+                    //             width: ref.offsetWidth,
+                    //             height: ref.offsetHeight,
+                    //         };
+                    //         const pos = {
+                    //             x: rect.x,
+                    //             y: rect.y,
+                    //         };
+                    //         pushPort(key, getPortPos(size, pos))
+                    //     }
+                    // }}
                     key={`drawflow-node-${type}put-${i}`}
                     className={`${type}put`}
                     onMouseUp={e => {
@@ -79,11 +97,55 @@ const DrawflowNodeBlock = ({
         );
     }
 
+    useEffect(() => {
+        if(ref.current) {
+            const inputs = Array.from(ref.current.querySelector(".inputs").children);
+            const outputs = Array.from(ref.current.querySelector(".outputs").children);
+            setRefs({
+                inputs,
+                outputs,
+            });
+        }
+    }, [ref]);
+
+    const getPortPos = (type, i, elmt) => {
+        const key = `${params.id}_${type}_${i}`;
+        if(!ports[key]) {
+            const rect = elmt.getBoundingClientRect();
+            const size = {
+                width: elmt.offsetWidth,
+                height: elmt.offsetHeight,
+            };
+            const pos = {
+                x: rect.x,
+                y: rect.y,
+            };
+            return {
+                [key]: getPortPosWithZoom(size, pos),
+            }
+        }
+    }
+
+    useEffect(() => {
+        if(refs.inputs && refs.outputs && params.port.in === refs.inputs.length && params.port.out === refs.outputs.length) {
+            console.log("test")
+            let newPorts = {};
+            newPorts = Object.assign(newPorts, refs.inputs.reduce((acc, elmt, i) => {
+                return Object.assign(acc, getPortPos("in", i + 1, elmt));
+            }, {}));
+            newPorts = Object.assign(newPorts, refs.outputs.reduce((acc, elmt, i) => {
+                return Object.assign(acc, getPortPos("out", i + 1, elmt));
+            }, {}));
+            pushPorts(newPorts);
+        }
+    }, [refs]);
+
     return (
     // TODO: handler overriding(action)
     // If you want, change styled component. My case is not supported styled component...
     <>
         <div
+            ref={ref}
             className={`drawflow-node-block-${blockType} ${params.type.replace(/\s/g, "").toLowerCase()}`}
             style={{
                 position: "absolute",
@@ -111,7 +173,8 @@ const DrawflowNodeBlock = ({
             >
                 <NodeContent
                     {...params}
-                    select={event.select}
+                    // select={event.select}
+                    setData={event.setData}
                 />
             </div>
             {portComponent("out")}

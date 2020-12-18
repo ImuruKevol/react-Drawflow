@@ -397,18 +397,15 @@ class Drawflow extends React.Component {
     select = (e, selectInfo) => {
         e.stopPropagation();
         if(this.state.select) this.state.select.classList.remove("select");
-        const { target } = e;
-        let element = target;
-        if(target.classList.contains("drawflow-node-content")) {
-            element = target.parentElement;
-        }
-        const isPort = target.classList.contains("input") || target.classList.contains("output");
-        const isNotSeletElement = element.tagName === "circle" || isPort;
+        let target = e.currentTarget;
+        const isPort = e.target.classList.contains("input") || e.target.classList.contains("output");
+        const isNotSeletElement = target.tagName === "circle" || isPort;
         if(!isNotSeletElement)
-            element.classList.add("select");
+            target.classList.add("select");
+        if(isPort) target = e.target;
         this.setState({
             drag: isPort? false : true,
-            select: element,
+            select: target,
             selectId: selectInfo && !selectInfo.svgKey? selectInfo : null,
             selectPoint: selectInfo && selectInfo.svgKey? selectInfo : null,
         });
@@ -666,7 +663,6 @@ class Drawflow extends React.Component {
 
     setData = (nodeId, data) => {
         const { drawflow } = this.state;
-        console.log(drawflow[nodeId])
         this.setState({
             drawflow: {
                 ...drawflow,

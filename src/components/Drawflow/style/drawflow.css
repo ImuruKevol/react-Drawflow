@@ -103,7 +103,7 @@ button {
   border: 1px solid black;
   display: flex;
   align-items: center;
-  z-index: 10;
+  z-index: 20;
   background-color: white;
 }
 
@@ -147,13 +147,13 @@ button {
   -webkit-box-shadow: 0 2px 15px 2px var(--border-color);
   box-shadow: 0 2px 15px 2px var(--border-color);
   border: 2px solid blue;
-  z-index: 20;
+  z-index: 30;
 }
 
 .drawflow .point.select {
   r: 7;
   fill: red;
-  z-index: 20;
+  z-index: 30;
 }
 
 .drawflow-node-content {

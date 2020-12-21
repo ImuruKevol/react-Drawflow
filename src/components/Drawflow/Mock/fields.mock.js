@@ -4,7 +4,8 @@ const types = ["String", "Numeric", "IP"];
 const modalType = MODAL_TYPE.common;
 
 export default async (number) => {
-    let names = await fetch("https://random-word-api.herokuapp.com/word?number=" + number);
+    let names = await (await fetch("https://random-word-api.herokuapp.com/word?number=" + number)).json();
+    
     return {
         type: "field",
         modalType,

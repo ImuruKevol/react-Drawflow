@@ -97,14 +97,23 @@ button {
    linear-gradient(to bottom, #f1f1f1 1px, transparent 1px);
 }
 
-.drawflow-node-block-common {
+.drawflow-node-block-common,
+.drawflow-node-block-round {
   display: inline-block;
   padding: 10px 15px;
   border: 1px solid black;
   display: flex;
   align-items: center;
   z-index: 20;
-  background-color: white;
+}
+
+.drawflow-node-block-common {
+  background-color: lightgray;
+}
+
+.drawflow-node-block-round {
+  border-radius: 50%;
+  background-color: lightcyan;
 }
 
 .drawflow-main #drawflow .drawflow .inputs .input,

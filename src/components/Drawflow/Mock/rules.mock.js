@@ -11,7 +11,7 @@ import { MODAL_TYPE } from "../../../common/Enum";
 const types = ["Single", "Threshold"];
 
 const getSingle = async (number) => {
-    let names = await fetch("https://random-word-api.herokuapp.com/word?number=" + number);
+    let names = await (await fetch("https://random-word-api.herokuapp.com/word?number=" + number)).json();
     return {
         modalType: MODAL_TYPE.single,
         list: names.reduce((acc, val) => {
@@ -26,7 +26,7 @@ const getSingle = async (number) => {
 
 
 const getThreshold = async (number) => {
-    let names = await fetch("https://random-word-api.herokuapp.com/word?number=" + number);
+    let names = await (await fetch("https://random-word-api.herokuapp.com/word?number=" + number)).json();
     return {
         modalType: MODAL_TYPE.threshold,
         list: names.reduce((acc, val) => {

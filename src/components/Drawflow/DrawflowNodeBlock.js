@@ -7,7 +7,6 @@ const DrawflowNodeBlock = ({
     NodeContent,
     params,
     editLock,
-    blockType = "common",
     ports,
     pushPorts,
     showButton,
@@ -112,7 +111,7 @@ const DrawflowNodeBlock = ({
     <>
         <div
             ref={ref}
-            className={`drawflow-node-block-${blockType} ${params.type.replace(/\s/g, "").toLowerCase()}`}
+            className={`drawflow-node-block-${params.type.replace(/\s/g, "").toLowerCase()}`}
             style={{
                 position: "absolute",
                 top: params.pos.y + "px",
@@ -120,7 +119,7 @@ const DrawflowNodeBlock = ({
                 cursor: editLock?"auto": "move"
             }}
             onMouseDown={e => {
-                if(e.currentTarget.classList.contains(`drawflow-node-block-${blockType}`)) {
+                if(e.currentTarget.classList.contains(`drawflow-node-block-${params.type.replace(/\s/g, "").toLowerCase()}`)) {
                     event.select(e, params.id);
                 }
             }}

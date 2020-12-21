@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React from "react";
 
 const Collector = (props) => {
     const { data, setData } = props;
 
     return (<>
-        <strong>Collector: 10032</strong>
+        <strong>This is Common Node</strong>
         <div>
             <input
                 type="text"

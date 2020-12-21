@@ -17,9 +17,8 @@ class Drawflow extends React.Component {
         this.state = {
             nodeList: [],
             nodeId: 1,
-            drag: false,
-            canvasDrag: false,
-            curvature: 0.5,
+            drag: false,                // TODO: move config
+            canvasDrag: false,          // TODO: move config
             config: {
                 canvasTranslate: {
                     x: 0,
@@ -33,15 +32,15 @@ class Drawflow extends React.Component {
                     tick: 0.1,
                 },
             },
-            drawflow: {},                   // {component, params} Array
-            connections: {},                // {svg1: [point1, point2, ...], svg2: [...]}
-            connectionsLabelEnable: false,
+            drawflow: {},
+            connections: {},
+            connectionsLabelEnable: false,  // TODO: move config
             connectionsLabel: {},
             ports: {},
-            editLock: false,
-            select: null,
-            selectId: null,
-            selectPoint: null,
+            editLock: false,                // TODO: move config
+            select: null,                   // TODO: move select(new object state)
+            selectId: null,                 // TODO: move select(new object state)
+            selectPoint: null,              // TODO: move select(new object state)
             showButton: null,
             tmpPath: null,
             modalType: null,
@@ -57,13 +56,13 @@ class Drawflow extends React.Component {
     }
 
     drag = (e, idx) => {
-        e.dataTransfer.setData("componentIndex", idx);
+        e.dataTransfer.setData("nodeType", idx);
     }
 
     drop = (e) => {
         e.preventDefault();
-        const componentIndex = e.dataTransfer.getData("componentIndex");
-        this.addNodeToDrawFlow(componentIndex, e.clientX, e.clientY);
+        const nodeType = e.dataTransfer.getData("nodeType");
+        this.addNodeToDrawFlow(nodeType, e.clientX, e.clientY);
     }
 
     makePortObj = (port) => {
@@ -82,12 +81,12 @@ class Drawflow extends React.Component {
         return obj;
     }
 
-    setDrawflow = (nodeId, componentIndex, params) => {
+    setDrawflow = (nodeId, nodeType, params) => {
         this.setState({
             drawflow: {
                 ...this.state.drawflow,
                 [nodeId]: Object.assign({}, {
-                    componentIndex,
+                    nodeType,
                     params,
                 }),
             },
@@ -96,14 +95,14 @@ class Drawflow extends React.Component {
 
     /**
      * create and add node
-     * @param {Number} componentIndex componentIndex
+     * @param {String} nodeType
      * @param {{in: Number, out: Number}} port 
      * @param {{x: Number, y: Number }} pos 
      * @param {{}} data 
      */
-    addNode = (componentIndex, port, pos, data = {}) => {
+    addNode = (nodeType, port, pos, data = {}) => {
         const { nodeId } = this.state;
-        const { type } = this.state.nodeList[componentIndex];
+        const { type } = this.state.nodeList[nodeType];
         const params = {
             id: nodeId,
             type,
@@ -115,7 +114,7 @@ class Drawflow extends React.Component {
                 y: pos.y,
             },
         };
-        this.setDrawflow(nodeId, componentIndex, params);
+        this.setDrawflow(nodeId, nodeType, params);
         this.setState({
             nodeId: nodeId + 1,
         });
@@ -142,22 +141,22 @@ class Drawflow extends React.Component {
         }
     }
 
-    addNodeToDrawFlow = (componentIndex, x, y) => {
+    addNodeToDrawFlow = (nodeType, x, y) => {
         if(this.state.editLock) return;
         const pos = this.getPos(x, y);
-        this.addNode(componentIndex, {in: 1, out: 1}, pos);
+        this.addNode(nodeType, {in: 1, out: 1}, pos);
     }
 
     makeNodeObject = (params) => {
-        let componentIndex = 0;
+        let nodeType = 0;
         for(let i=0;i<this.state.nodeList.length;i++) {
             if(this.state.nodeList[i].type === params.type) {
-                componentIndex = i;
+                nodeType = i;
                 break;
             }
         }
         return {
-            componentIndex,
+            nodeType,
             params,
         };
     }
@@ -294,11 +293,11 @@ class Drawflow extends React.Component {
             }
             paths.push({start: points.slice(-1)[0], end: end, type: "close"});
             d = paths.reduce((acc, val) => {
-                return acc + createCurvature(val.start, val.end, this.state.curvature, val.type) + " ";
+                return acc + createCurvature(val.start, val.end, val.type) + " ";
             }, "");
         }
         else {
-            d = createCurvature(start, end, this.state.curvature, "openclose");
+            d = createCurvature(start, end, "openclose");
         }
 
         return (
@@ -748,12 +747,11 @@ class Drawflow extends React.Component {
                 x: ports[startKey].x,
                 y: ports[startKey].y,
             }
-            // let offset = this.state.config.canvasTranslate;
             const end = this.getPos(clientX, clientY);
-            // const end = this.getPos(clientX - offset.x, clientY - offset.y);
 
-            const d = createCurvature(start, end, this.state.curvature, "openclose");
+            const d = createCurvature(start, end, "openclose");
             const path = this.PathComponent(start, end, null, d);
+
             this.setState({
                 tmpPath: path,
             });
@@ -779,6 +777,8 @@ class Drawflow extends React.Component {
             this.load(data);
             document.addEventListener("keydown", this.onKeyDown);
         });
+        // getDummyFields(200).then(data => {console.log(data)})
+        // getDummyRules(200).then(data => {console.log(data)})
     }
 
     componentWillUnmount() {
@@ -833,6 +833,9 @@ class Drawflow extends React.Component {
             }
             <div className="drawflow-wrapper">
                 <div className="drawflow-node-list">
+                    <div>
+                        {/* field list || rule list -=> other component import */}
+                    </div>
                     {this.state.nodeList.map((node, idx) =>
                     <div
                         className="drawflow-node-block"
@@ -907,7 +910,7 @@ class Drawflow extends React.Component {
                                 key={"drawflow-node-block-" + idx}
                                 getCanvasInfo={this.getCanvasInfo}
                                 zoom={this.state.config.zoom.value}
-                                NodeContent={this.state.nodeList[node.componentIndex].component}
+                                NodeContent={this.state.nodeList[node.nodeType].component}
                                 params={node.params}
                                 editLock={this.state.editLock}
                                 ports={this.state.ports}

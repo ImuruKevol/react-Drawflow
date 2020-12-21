@@ -4,7 +4,7 @@ export default () => {
       "nodes": {
         "1": {
           "id": 1,
-          "type": "Destination",
+          "type": "Common",
           "data": {},
           "port": {
             "in": 1,
@@ -29,7 +29,7 @@ export default () => {
         },
         "2": {
           "id": 2,
-          "type": "Event",
+          "type": "Round",
           "data": {},
           "port": {
             "in": 1,
@@ -48,16 +48,16 @@ export default () => {
             }
           },
           "pos": {
-            "x": 237.3125,
-            "y": 131
+            "x": 471.3125,
+            "y": 273.5
           }
         }
       },
       "connections": {
-        "1_1_2_1": [],
+        "1_1_2_1": []
       },
       "connectionsLabel": {
-        "1_1_2_1": "test\nasdf",
+        "1_1_2_1": "test\ntest"
       }
     });
   });

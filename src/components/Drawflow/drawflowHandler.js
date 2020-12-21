@@ -1,4 +1,6 @@
-const createCurvature = (start, end, curv, type) => {
+import {CURV as curv} from "../../common/Enum";
+
+const createCurvature = (start, end, type) => {
   let hx1 = null;
   let hx2 = null;
 

@@ -12,7 +12,10 @@ const MODAL_LABEL = {
     [MODAL_TYPE.threshold]: "Threshold Rule Modal",
 }
 
+const CURV = 0.5;
+
 export {
+    CURV,
     MODAL_TYPE,
     MODAL_LABEL,
 }

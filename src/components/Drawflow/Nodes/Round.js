@@ -1,7 +1,7 @@
 import React from 'react';
 
-const Destination = () => {
-    return (<>Destination</>);
+const Round = () => {
+    return (<>Round Node</>);
 }
 
-export default Destination;
+export default Round;

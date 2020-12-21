@@ -1,11 +1,15 @@
 const MODAL_TYPE = {
     import: "import",
-    node: "node",
+    common: "common",
+    single: "single",
+    threshold: "threshold",
 }
 
 const MODAL_LABEL = {
     [MODAL_TYPE.import]: "Import Modal",
-    [MODAL_TYPE.node]: "Node Modal",
+    [MODAL_TYPE.common]: "Node Modal",
+    [MODAL_TYPE.single]: "Single Rule Modal",
+    [MODAL_TYPE.threshold]: "Threshold Rule Modal",
 }
 
 export {

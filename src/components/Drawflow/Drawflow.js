@@ -6,7 +6,9 @@ import DrawflowModal from "./Modal";
 import Nodes from "./Nodes";
 import { createCurvature } from "./drawflowHandler";
 import { MODAL_TYPE, MODAL_LABEL } from "../../common/Enum";
-import dummy from "./dummy";    // TODO remove this line
+import getDummy from "./Mock/dummy.mock";    // TODO remove this line
+import getDummyFields from "./Mock/fields.mock";    // TODO remove this line
+import getDummyRules from "./Mock/rules.mock";    // TODO remove this line
 import "./style/drawflow.css";
 
 class Drawflow extends React.Component {
@@ -33,6 +35,8 @@ class Drawflow extends React.Component {
             },
             drawflow: {},                   // {component, params} Array
             connections: {},                // {svg1: [point1, point2, ...], svg2: [...]}
+            connectionsLabelEnable: false,
+            connectionsLabel: {},
             ports: {},
             editLock: false,
             select: null,
@@ -305,12 +309,48 @@ class Drawflow extends React.Component {
         );
     }
 
+    drawConnectionsLabel = (points, label) => {
+        // calc label position
+        const pointsLength = points.length;
+        const mid = Math.floor(pointsLength / 2);
+        let pos = {};
+        if(pointsLength % 2 === 1) {
+            pos = points[mid];
+        }
+        else {      // even
+            const start = points[mid - 1];
+            const end = points[mid];
+            pos = {
+                x: Math.abs(end.x + start.x) / 2,
+                y: Math.abs(end.y + start.y) / 2,
+            }
+        }
+
+        // draw component
+        return (
+        <div
+            style={{
+                position: "absolute",
+                top: pos.y,
+                left: pos.x,
+                border: "1px solid red"
+            }}
+        >
+            {label}
+        </div>);
+    }
+
     load = (data) => {
         const dataEntries = Object.entries(data.nodes);
         const { connections } = data;
         let obj = {
             connections,
         };
+
+        if(data.connectionsLabel) {
+            obj.connectionsLabel = data.connectionsLabel;
+            obj.connectionsLabelEnable = true;
+        }
         
         let drawflow = {};
         for(const [nodeId, params] of dataEntries) {
@@ -735,8 +775,10 @@ class Drawflow extends React.Component {
 
     componentDidMount() {
         // TODO : import data from prev page by id
-        this.load(dummy);
-        document.addEventListener("keydown", this.onKeyDown);
+        getDummy().then((data) => {
+            this.load(data);
+            document.addEventListener("keydown", this.onKeyDown);
+        });
     }
 
     componentWillUnmount() {
@@ -884,9 +926,9 @@ class Drawflow extends React.Component {
                                 event={nodeBlockEvent}
                             />
                             )}
-                            {Object.entries(this.state.connections).map(([key, connection], idx) => {
+                            {Object.entries(this.state.connections).map(([key, points], idx) => {
                                 // key: fromId_portNum_toId_portNum
-                                const { ports } = this.state;
+                                const { ports, connectionsLabel, connectionsLabelEnable } = this.state;
                                 const arr = key.split("_");
                                 const startKey = `${arr[0]}_out_${arr[1]}`;
                                 const endKey = `${arr[2]}_in_${arr[3]}`;
@@ -902,13 +944,19 @@ class Drawflow extends React.Component {
                                     y: ports[endKey].y,
                                 }
                                 return (
+                                <>
                                     <svg
                                         key={"drawflow-svg-" + idx}
                                         xmlns="http://www.w3.org/2000/svg"
                                         className="drawflow-connection"
                                     >
-                                        {this.drawConnections(start, end, connection, idx, key)}
+                                        {this.drawConnections(start, end, points, idx, key)}
                                     </svg>
+                                    {connectionsLabelEnable &&
+                                    <div>
+                                        {this.drawConnectionsLabel([start, ...points, end], connectionsLabel[key])}
+                                    </div>}
+                                </>
                                 );
                             })}
                             {this.state.tmpPath &&

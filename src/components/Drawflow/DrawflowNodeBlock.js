@@ -137,7 +137,7 @@ const DrawflowNodeBlock = ({
             <div
                 className="drawflow-node-content"
                 onDoubleClick={() => {
-                    showModal(MODAL_TYPE.node);
+                    showModal(MODAL_TYPE.common);
                 }}
             >
                 <NodeContent

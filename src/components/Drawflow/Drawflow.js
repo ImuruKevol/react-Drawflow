@@ -11,6 +11,7 @@ import "./style/drawflow.css";
 
 let cache = {};
 // TODO : 분리 가능한 함수 분리하기
+// TODO : 함수 순서 정리하기
 class Drawflow extends React.Component {
     constructor () {
         super();
@@ -785,7 +786,14 @@ class Drawflow extends React.Component {
             const { list } = dataObj;
             if(!list) return <></>;
             return (
-            <div className="drawflow-node-list-wrap">
+            <div
+                className="drawflow-node-list-wrap"
+                onScroll={e => {
+                    const { scrollHeight, scrollTop, clientHeight } = e.target;
+                    const scroll = scrollHeight - scrollTop;
+                    if(scroll === clientHeight) this.props.getDataByScroll();
+                }}
+            >
                 {list.map((item, idx) => this.NodeListMenuComponent(`[${item.type.slice(0, 1)}] ${item.name}`, NODE_MAPPING[NODE_CATEGORY.FIELD], idx))}
             </div>
             );

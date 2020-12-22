@@ -33,6 +33,40 @@ function App() {
     });
   }, [current]);
 
+  // TODO : queue 만들기; 무한 스크롤, 페이징에 사용
+
+  const getDataByScroll = async (type) => {
+    let result = null;
+    let obj = null;
+    if(current === NODE_CATEGORY.FIELD) {
+      console.debug("get dummy fields!");
+      result = (await getDummyFields(200)).list;
+      obj = {
+        ...cache[current],
+        list: [...cache[current].list, ...result],
+      }
+    }
+    else if(current === NODE_CATEGORY.RULE) {
+      console.debug("get dummy rules!");
+      result = await getDummyRules(200);
+      obj = {
+        ...cache[current],
+        single: {
+          ...cache[current].single,
+          list: [...cache[current].single.list, ...result.single.list],
+        },
+        threshold: {
+          ...cache[current].threshold,
+          list: [...cache[current].threshold.list, ...result.threshold.list],
+        },
+      }
+    }
+    setCache({
+      ...cache,
+      [current]: obj,
+    });
+  }
+
   return (
     <div className="App">
       {current === NODE_CATEGORY.RULE && <button onClick={() => {setCurrent(NODE_CATEGORY.FIELD)}}>Fields</button>}
@@ -40,6 +74,7 @@ function App() {
       <Drawflow
         type={current}
         dataObj={cache[current]}
+        getDataByScroll={getDataByScroll}
       />
     </div>
   );

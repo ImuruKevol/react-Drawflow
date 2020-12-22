@@ -2,7 +2,7 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-And, Convert [Drawflow](https://github.com/jerosoler/Drawflow) for react
+And, Convert [Drawflow](https://github.com/jerosoler/Drawflow) for react.
 
 ## Add Node type
 
@@ -21,10 +21,6 @@ And, Convert [Drawflow](https://github.com/jerosoler/Drawflow) for react
 ## Add Node Block type
 
 1. className format : `drawflow-node-block-${blockType}`
-
-## Todo (Regularly Updating)
-
-- node content component
 
 ## Start
 

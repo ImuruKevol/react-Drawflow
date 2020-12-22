@@ -10,6 +10,7 @@ import getDummy from "./Mock/dummy.mock";    // TODO remove this line
 import "./style/drawflow.css";
 
 let cache = {};
+// TODO : 분리 가능한 함수 분리하기
 class Drawflow extends React.Component {
     constructor () {
         super();
@@ -22,7 +23,6 @@ class Drawflow extends React.Component {
                     x: 0,
                     y: 0,
                 },
-                circleWidth: 6,
                 zoom: {
                     value: 1,
                     max: 2,
@@ -240,7 +240,7 @@ class Drawflow extends React.Component {
                 }}
                 cx={x}
                 cy={y}
-                r={this.state.config.circleWidth}
+                r={6}
                 onMouseDown={e => {
                     if(this.state.editLock) return;
                     this.select(e, {
@@ -759,6 +759,7 @@ class Drawflow extends React.Component {
         return arr.filter(word => target.toLowerCase().includes(word)).length === arr.length;
     }
     
+    // TODO : 파일로 분리
     NodeListMenuComponent = (label, nodeType, idx, menuType = undefined) => {
         const style = this.isInludeAndSearch(label)?{}:{display: "none"};
         return (
@@ -776,13 +777,18 @@ class Drawflow extends React.Component {
         );
     }
 
+    // TODO : 파일로 분리
     NodeListMenu = {
         [NODE_CATEGORY.FIELD]: () => {
             const { dataObj } = this.props;
             if(!dataObj) return;
             const { list } = dataObj;
             if(!list) return <></>;
-            return list.map((item, idx) => this.NodeListMenuComponent(`[${item.type.slice(0, 1)}] ${item.name}`, NODE_MAPPING[NODE_CATEGORY.FIELD], idx));
+            return (
+            <div className="drawflow-node-list-wrap">
+                {list.map((item, idx) => this.NodeListMenuComponent(`[${item.type.slice(0, 1)}] ${item.name}`, NODE_MAPPING[NODE_CATEGORY.FIELD], idx))}
+            </div>
+            );
         },
 
         [NODE_CATEGORY.RULE]: () => {
@@ -790,20 +796,20 @@ class Drawflow extends React.Component {
             if(!dataObj) return;
             const { single, threshold } = dataObj;
             return (
-            <div className="drawflow-node-list-flex">
-                <div>
+            <>
+                <div className="drawflow-node-list-category-wrap">
                     <div className="drawflow-node-list-category">Single</div>
-                    <div>
+                    <div className="drawflow-node-list-wrap">
                         {single.list.map((item, idx) => this.NodeListMenuComponent(`${item.name}`, NODE_MAPPING[NODE_CATEGORY.RULE], idx, "single"))}
                     </div>
                 </div>
-                <div>
+                <div className="drawflow-node-list-category-wrap">
                     <div className="drawflow-node-list-category">Threshold</div>
-                    <div>
+                    <div className="drawflow-node-list-wrap">
                         {threshold.list.map((item, idx) => this.NodeListMenuComponent(`${item.name}`, NODE_MAPPING[NODE_CATEGORY.RULE], idx, "threshold"))}
                     </div>
                 </div>
-            </div>
+            </>
             );
         },
     }
@@ -884,7 +890,9 @@ class Drawflow extends React.Component {
                         />
                         <button>검색</button>
                     </div>
-                    {this.NodeListMenu[this.props.type]()}
+                    <div className="drawflow-node-list-flex">
+                        {this.NodeListMenu[this.props.type]()}
+                    </div>
                 </div>
                 <div className="drawflow-main">
                     <div

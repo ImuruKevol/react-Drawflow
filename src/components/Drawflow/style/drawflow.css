@@ -52,7 +52,7 @@ button {
   border: 2px solid lightcoral;
 }
 
-.drawflow-node-list-category + div {
+.drawflow-node-list-wrap {
   overflow: scroll;
   height: 100%;
 }
@@ -61,7 +61,7 @@ button {
   height: calc(100% - 30px);
 }
 
-.drawflow-node-list-flex > div {
+.drawflow-node-list-flex > .drawflow-node-list-category-wrap {
   height: 50%;
   border-bottom: 1px solid black;
   padding-top: 30px;

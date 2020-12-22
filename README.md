@@ -24,13 +24,7 @@ And, Convert [Drawflow](https://github.com/jerosoler/Drawflow) for react
 
 ## Todo (Regularly Updating)
 
-- optimization
-
-- TODO tag
-
 - node content component
-
-- node content component data state management
 
 ## Start
 

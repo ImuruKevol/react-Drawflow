@@ -1,3 +1,5 @@
+const CURV = 0.5;
+
 const MODAL_TYPE = {
     import: "import",
     common: "common",
@@ -12,10 +14,23 @@ const MODAL_LABEL = {
     [MODAL_TYPE.threshold]: "Threshold Rule Modal",
 }
 
-const CURV = 0.5;
+const NODE_CATEGORY = {
+    FIELD: "field",
+    RULE: "rule",
+}
+
+/**
+ * node type(Common, Round) <-> node category(field, rule) mapping
+ */
+const NODE_MAPPING = {
+    [NODE_CATEGORY.FIELD]: "Common",
+    [NODE_CATEGORY.RULE]: "Round",
+}
 
 export {
     CURV,
     MODAL_TYPE,
     MODAL_LABEL,
+    NODE_CATEGORY,
+    NODE_MAPPING,
 }

@@ -6,7 +6,7 @@ import DrawflowModal from "./Modal";
 import Nodes from "./Nodes";
 import { createCurvature } from "./drawflowHandler";
 import { MODAL_TYPE, MODAL_LABEL, NODE_CATEGORY, NODE_MAPPING } from "../../common/Enum";
-// import getDummy from "./Mock/dummy.mock";    // TODO remove this line
+import getDummy from "./Mock/dummy.mock";    // TODO remove this line
 import "./style/drawflow.css";
 
 let cache = {};
@@ -42,6 +42,7 @@ class Drawflow extends React.Component {
             showButton: null,
             tmpPath: null,
             modalType: null,
+            searchWord: "",
         }
         this.tmpPorts = {};
     }
@@ -329,13 +330,12 @@ class Drawflow extends React.Component {
 
     load = async (data) => {
         const { dataObj } = this.props;
-        if(!dataObj) return;
         const { connections } = data;
-        if(!connections) return;
+        if(!dataObj || !connections) return;
 
         let obj = {
             connections,
-            data: dataObj,
+            data: {...dataObj},
             drawflow: data.nodes,
         };
 
@@ -752,18 +752,26 @@ class Drawflow extends React.Component {
             }
         }
     }
+
+    isInludeAndSearch = (target) => {
+        const { searchWord } = this.state;
+        const arr = searchWord.toLowerCase().split(" ").filter(item => item.length > 0);
+        return arr.filter(word => target.toLowerCase().includes(word)).length === arr.length;
+    }
     
     NodeListMenuComponent = (label, nodeType, idx, menuType = undefined) => {
+        const style = this.isInludeAndSearch(label)?{}:{display: "none"};
         return (
             <div
                 className="drawflow-node-block"
+                style={style}
                 key={"drawflow-node-" + idx}
                 draggable={!this.state.editLock}
                 onDragStart={e => {
                     this.drag(e, nodeType, idx, menuType);
                 }}
             >
-                <span>{label}</span>
+                <span title={label}>{label}</span>
             </div>
         );
     }
@@ -783,7 +791,9 @@ class Drawflow extends React.Component {
             const { single, threshold } = dataObj;
             return (
             <>
+                <div className="drawflow-node-list-category">Single</div>
                 {single.list.map((item, idx) => this.NodeListMenuComponent(`${item.name}`, NODE_MAPPING[NODE_CATEGORY.RULE], idx, "single"))}
+                <div className="drawflow-node-list-category">Threshold</div>
                 {threshold.list.map((item, idx) => this.NodeListMenuComponent(`${item.name}`, NODE_MAPPING[NODE_CATEGORY.RULE], idx, "threshold"))}
             </>
             );
@@ -792,17 +802,17 @@ class Drawflow extends React.Component {
 
     componentDidMount() {
         // TODO : import data from prev page by id
-        // getDummy().then((data) => {
-        //     cache = Object.assign({}, data);
-        //     this.load(data);
+        getDummy().then((data) => {
+            cache = Object.assign({}, data);
+            this.load(data);
             document.addEventListener("keydown", this.onKeyDown);
-        // });
+        });
     }
 
     componentDidUpdate(prevProps, prevState) {
-        // if(this.props.type !== prevState.data.type) {
+        if(prevProps.dataObj !==  this.props.dataObj) {
             this.load(cache);
-        // }
+        }
     }
 
     componentWillUnmount() {
@@ -857,6 +867,15 @@ class Drawflow extends React.Component {
             }
             <div className="drawflow-wrapper">
                 <div className="drawflow-node-list">
+                    <div>
+                        <input
+                            type="text"
+                            value={this.state.searchWord}
+                            placeholder="space: and"
+                            onChange={e => {this.setState({searchWord: e.target.value})}}
+                        />
+                        <button>검색</button>
+                    </div>
                     {this.NodeListMenu[this.props.type]()}
                 </div>
                 <div className="drawflow-main">

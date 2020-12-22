@@ -4,7 +4,7 @@ const Collector = (props) => {
     const { data, setData } = props;
 
     return (<>
-        <strong>This is Common Node</strong>
+        <strong>{`${data.type?`[${data.type.slice(0, 1)}]`:""}${data.name}`}</strong>
         <div>
             <input
                 type="text"

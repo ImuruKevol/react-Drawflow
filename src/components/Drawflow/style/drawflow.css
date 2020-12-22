@@ -39,12 +39,32 @@ button {
   border-right: 1px solid var(--border-color);
 }
 
+.drawflow-node-list-search {
+  height: 30px;
+}
+
 .drawflow-node-list-category {
-  margin-top: 10px;
-  line-height: 26px;
-  font-size: 20px;
+  position: absolute;
+  margin-top: -30px;
+  line-height: 20px;
+  font-size: 14px;
   font-weight: bold;
   border: 2px solid lightcoral;
+}
+
+.drawflow-node-list-category + div {
+  overflow: scroll;
+  height: 100%;
+}
+
+.drawflow-node-list-flex {
+  height: calc(100% - 30px);
+}
+
+.drawflow-node-list-flex > div {
+  height: 50%;
+  border-bottom: 1px solid black;
+  padding-top: 30px;
 }
 
 .drawflow-node-block {

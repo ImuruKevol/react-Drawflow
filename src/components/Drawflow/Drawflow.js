@@ -790,12 +790,20 @@ class Drawflow extends React.Component {
             if(!dataObj) return;
             const { single, threshold } = dataObj;
             return (
-            <>
-                <div className="drawflow-node-list-category">Single</div>
-                {single.list.map((item, idx) => this.NodeListMenuComponent(`${item.name}`, NODE_MAPPING[NODE_CATEGORY.RULE], idx, "single"))}
-                <div className="drawflow-node-list-category">Threshold</div>
-                {threshold.list.map((item, idx) => this.NodeListMenuComponent(`${item.name}`, NODE_MAPPING[NODE_CATEGORY.RULE], idx, "threshold"))}
-            </>
+            <div className="drawflow-node-list-flex">
+                <div>
+                    <div className="drawflow-node-list-category">Single</div>
+                    <div>
+                        {single.list.map((item, idx) => this.NodeListMenuComponent(`${item.name}`, NODE_MAPPING[NODE_CATEGORY.RULE], idx, "single"))}
+                    </div>
+                </div>
+                <div>
+                    <div className="drawflow-node-list-category">Threshold</div>
+                    <div>
+                        {threshold.list.map((item, idx) => this.NodeListMenuComponent(`${item.name}`, NODE_MAPPING[NODE_CATEGORY.RULE], idx, "threshold"))}
+                    </div>
+                </div>
+            </div>
             );
         },
     }
@@ -867,7 +875,7 @@ class Drawflow extends React.Component {
             }
             <div className="drawflow-wrapper">
                 <div className="drawflow-node-list">
-                    <div>
+                    <div className="drawflow-node-list-search">
                         <input
                             type="text"
                             value={this.state.searchWord}

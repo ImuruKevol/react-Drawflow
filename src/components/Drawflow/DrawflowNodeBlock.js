@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
+import handler from "./drawflowHandler";
 import { MODAL_TYPE } from "../../common/Enum";
 
 const DrawflowNodeBlock = ({
-    getCanvasInfo,
     zoom,
     NodeContent,
     params,
@@ -33,7 +33,7 @@ const DrawflowNodeBlock = ({
     const ref = useRef(null);
 
     const getPortPosWithZoom = (size, pos) => {
-        const canvas = getCanvasInfo();
+        const canvas = handler.getCanvasInfo();
         const widthZoom = (canvas.width / (canvas.width * zoom)) || 0;
         const heightZoom = (canvas.height / (canvas.height * zoom)) || 0;
         const x = size.width/2 + (pos.x - canvas.x ) * widthZoom;

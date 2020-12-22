@@ -44,6 +44,28 @@ const createCurvature = (start, end, type) => {
   }
 }
 
-export {
+const getCanvasInfo = () => {
+  // TODO : replace querySelector to someting
+  const canvas = document.querySelector("#drawflow").querySelector(".drawflow");
+  const canvasRect = canvas.getBoundingClientRect();
+  return {
+      x: canvasRect.x,
+      y: canvasRect.y,
+      width: canvas.clientWidth,
+      height: canvas.clientHeight,
+  };
+}
+
+const getPos = (clientX, clientY, zoom) => {
+  const { x, y, width, height } = getCanvasInfo();
+  return  {
+      x: clientX * (width / (width * zoom)) - (x * (width / (width * zoom))),
+      y: clientY * (height / (height * zoom)) - (y * (height / (height * zoom))),
+  }
+}
+
+export default {
   createCurvature,
+  getCanvasInfo,
+  getPos,
 }

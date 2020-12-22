@@ -4,7 +4,7 @@ import DrawflowZoomArea from "./ButtonArea/DrawflowZoomArea";
 import DrawflowNodeBlock from "./DrawflowNodeBlock";
 import DrawflowModal from "./Modal";
 import Nodes from "./Nodes";
-import { createCurvature } from "./drawflowHandler";
+import handler from "./drawflowHandler";
 import { MODAL_TYPE, MODAL_LABEL, NODE_CATEGORY, NODE_MAPPING } from "../../common/Enum";
 import getDummy from "./Mock/dummy.mock";    // TODO remove this line
 import "./style/drawflow.css";
@@ -48,20 +48,6 @@ class Drawflow extends React.Component {
         this.tmpPorts = {};
     }
 
-    drag = (e, nodeType, idx, menuType) => {
-        e.dataTransfer.setData("nodeType", nodeType);
-        e.dataTransfer.setData("index", idx);
-        if(menuType) e.dataTransfer.setData("menuType", menuType);
-    }
-
-    drop = (e) => {
-        e.preventDefault();
-        const nodeType = e.dataTransfer.getData("nodeType");
-        const idx = e.dataTransfer.getData("index");
-        const menuType = e.dataTransfer.getData("menuType");
-        this.addNodeToDrawFlow(nodeType, e.clientX, e.clientY, idx, menuType);
-    }
-
     makePortObj = (port) => {
         let obj = {
             inputs: {},
@@ -78,15 +64,6 @@ class Drawflow extends React.Component {
         return obj;
     }
 
-    setDrawflow = (nodeId, params) => {
-        this.setState({
-            drawflow: {
-                ...this.state.drawflow,
-                [nodeId]: {...params},
-            },
-        });
-    }
-
     /**
      * create and add node
      * @param {String} nodeType
@@ -95,7 +72,7 @@ class Drawflow extends React.Component {
      * @param {{}} data 
      */
     addNode = (nodeType, port, pos, data = {}) => {
-        const { nodeId } = this.state;
+        const { nodeId, drawflow } = this.state;
         const params = {
             id: nodeId,
             type: nodeType,
@@ -107,31 +84,13 @@ class Drawflow extends React.Component {
                 y: pos.y,
             },
         };
-        this.setDrawflow(nodeId, params);
         this.setState({
             nodeId: nodeId + 1,
+            drawflow: {
+                ...drawflow,
+                [nodeId]: {...params},
+            }
         });
-    }
-
-    getCanvasInfo = () => {
-        // TODO : replace querySelector to someting
-        const canvas = document.querySelector("#drawflow").querySelector(".drawflow");
-        const canvasRect = canvas.getBoundingClientRect();
-        return {
-            x: canvasRect.x,
-            y: canvasRect.y,
-            width: canvas.clientWidth,
-            height: canvas.clientHeight,
-        };
-    }
-
-    getPos = (clientX, clientY) => {
-        const { x, y, width, height } = this.getCanvasInfo();
-        const zoom = this.state.config.zoom.value;
-        return  {
-            x: clientX * (width / (width * zoom)) - (x * (width / (width * zoom))),
-            y: clientY * (height / (height * zoom)) - (y * (height / (height * zoom))),
-        }
     }
 
     getDataByIndex = {
@@ -145,10 +104,117 @@ class Drawflow extends React.Component {
 
     addNodeToDrawFlow = (nodeType, x, y, idx, menuType) => {
         const { type } = this.props;
-        const { editLock } = this.state;
+        const { editLock, config } = this.state;
         if(editLock) return;
-        const pos = this.getPos(x, y);
+        const pos = handler.getPos(x, y, config.zoom.value);
         this.addNode(nodeType, {in: 1, out: 1}, pos, this.getDataByIndex[type](idx, menuType));
+    }
+
+    drag = (e, nodeType, idx, menuType) => {
+        e.dataTransfer.setData("nodeType", nodeType);
+        e.dataTransfer.setData("index", idx);
+        if(menuType) e.dataTransfer.setData("menuType", menuType);
+    }
+
+    drop = (e) => {
+        e.preventDefault();
+        const nodeType = e.dataTransfer.getData("nodeType");
+        const idx = e.dataTransfer.getData("index");
+        const menuType = e.dataTransfer.getData("menuType");
+        this.addNodeToDrawFlow(nodeType, e.clientX, e.clientY, idx, menuType);
+    }
+
+    unSelect = (e) => {
+        e.stopPropagation();
+        if(this.state.select) this.state.select.classList.remove("select");
+        this.setState({
+            drag: false,
+            select: null,
+            selectId: null,
+            selectPoint: null,
+            showButton: null,
+        });
+    }
+
+    select = (e, selectInfo) => {
+        e.stopPropagation();
+        const { select } = this.state;
+        if(select) select.classList.remove("select");
+        let target = e.currentTarget;
+        const isPort = e.target.classList.contains("input") || e.target.classList.contains("output");
+        const isNotSeletElement = target.tagName === "circle" || isPort;
+        if(!isNotSeletElement)
+            target.classList.add("select");
+        if(isPort) target = e.target;
+        this.setState({
+            drag: isPort? false : true,
+            select: target,
+            selectId: selectInfo && !selectInfo.svgKey? selectInfo : null,
+            selectPoint: selectInfo && selectInfo.svgKey? selectInfo : null,
+        });
+    }
+
+    movePoint = (e, svgKey, i) => {
+        const { drag, select } = this.state;
+        if(!drag) return;
+        if(e.target !== select) return;
+        const { movementX, movementY } = e;
+        if(movementX === 0 && movementY === 0) return;
+        
+        const { connections } = this.state;
+        const oldPos = connections[svgKey][i];
+        const after = {
+            x: oldPos.x + movementX,
+            y: oldPos.y + movementY,
+        }
+        let clone = [...connections[svgKey]];
+        clone[i] = after;
+        this.setState({
+            connections: {
+                ...connections,
+                [svgKey]: clone,
+            }
+        });
+    }
+
+    CircleComponent = (x, y, key, svgKey, i) => {
+        const { editLock } = this.state;
+        return (
+            <circle
+                key={key}
+                xmlns="http://www.w3.org/2000/svg"
+                className="point"
+                style={{
+                    cursor: editLock?"auto":"move"
+                }}
+                cx={x}
+                cy={y}
+                r={6}
+                onMouseDown={e => {
+                    if(editLock) return;
+                    this.select(e, {
+                        svgKey,
+                        i,
+                    });
+                }}
+                onMouseMove={e => {
+                    if(editLock) return;
+                    this.movePoint(e, svgKey, i);
+                }}
+                onDoubleClick={e => {
+                    if(editLock) return;
+                    const { connections } = this.state;
+                    const svgArr = connections[svgKey];
+                    const newSvgArr = svgArr.filter((_, idx) => idx !== i);
+                    this.setState({
+                        connections: {
+                            ...connections,
+                            [svgKey]: newSvgArr,
+                        }
+                    });
+                }}
+            ></circle>
+        );
     }
 
     customSort = (arrX, arrY, quadrant) => {
@@ -160,9 +226,9 @@ class Drawflow extends React.Component {
             cloneY = cloneY.filter(item => popXY.y !== item);
         }
         const next = () => {
-            const result = quadrant === 1 ? {x: Math.min(...cloneX), y: Math.min(...cloneY)} :
-                           quadrant === 2 ? {x: Math.max(...cloneX), y: Math.min(...cloneY)} :
-                           quadrant === 3 ? {x: Math.max(...cloneX), y: Math.max(...cloneY)} :
+            const result = quadrant === 1 ? {x: Math.min(...cloneX), y: Math.min(...cloneY)}:
+                           quadrant === 2 ? {x: Math.max(...cloneX), y: Math.min(...cloneY)}:
+                           quadrant === 3 ? {x: Math.max(...cloneX), y: Math.max(...cloneY)}:
                                             {x: Math.min(...cloneX), y: Math.max(...cloneY)};
             pop(result);
             return result;
@@ -171,7 +237,7 @@ class Drawflow extends React.Component {
             result.push(next());
         }
         return result;
-      }
+    }
 
     sortPoints = (points, start, end) => {
         let result = null;
@@ -204,19 +270,20 @@ class Drawflow extends React.Component {
     }
 
     PathComponent = (start, end, pathKey, d) => {
+        const { editLock } = this.state;
         return (
             <path
                 xmlns="http://www.w3.org/2000/svg"
                 className="main-path"
                 d={d}
                 onMouseDown={(e) => {
-                    if(this.state.editLock) return;
+                    if(editLock) return;
                     this.select(e, pathKey);
                 }}
                 onDoubleClick={e => {
-                    if(this.state.editLock) return;
-                    const { connections } = this.state;
-                    const pos = this.getPos(e.clientX, e.clientY);
+                    if(editLock) return;
+                    const { connections, config } = this.state;
+                    const pos = handler.getPos(e.clientX, e.clientY, config.zoom.value);
                     if(!pathKey) return;
                     const newPoints = this.sortPoints([...connections[pathKey], pos], start, end);
                     this.setState({
@@ -230,47 +297,10 @@ class Drawflow extends React.Component {
         );
     }
 
-    CircleComponent = (x, y, key, svgKey, i) => {
-        return (
-            <circle
-                key={key}
-                xmlns="http://www.w3.org/2000/svg"
-                className="point"
-                style={{
-                    cursor: this.state.editLock?"auto":"move"
-                }}
-                cx={x}
-                cy={y}
-                r={6}
-                onMouseDown={e => {
-                    if(this.state.editLock) return;
-                    this.select(e, {
-                        svgKey,
-                        i,
-                    });
-                }}
-                onMouseMove={e => {
-                    if(this.state.editLock) return;
-                    this.movePoint(e, svgKey, i);
-                }}
-                onDoubleClick={e => {
-                    if(this.state.editLock) return;
-                    const svgArr = this.state.connections[svgKey];
-                    const newSvgArr = svgArr.filter((_, idx) => idx !== i);
-                    this.setState({
-                        connections: {
-                            ...this.state.connections,
-                            [svgKey]: newSvgArr,
-                        }
-                    });
-                }}
-            ></circle>
-        );
-    }
-
     drawConnections = (start, end, points, idx, svgKey) => {
         let circles = points.reduce((acc, val, i) => {
-            acc.push(this.CircleComponent(val.x, val.y, "draw-flow-svg-" + idx + "circle-" + i, svgKey, i));
+            const tmpKey = "draw-flow-svg-" + idx + "circle-" + i;
+            acc.push(this.CircleComponent(val.x, val.y, tmpKey, svgKey, i));
             return acc;
         }, []);
         
@@ -283,11 +313,11 @@ class Drawflow extends React.Component {
             }
             paths.push({start: points.slice(-1)[0], end: end, type: "close"});
             d = paths.reduce((acc, val) => {
-                return acc + createCurvature(val.start, val.end, val.type) + " ";
+                return acc + handler.createCurvature(val.start, val.end, val.type) + " ";
             }, "");
         }
         else {
-            d = createCurvature(start, end, "openclose");
+            d = handler.createCurvature(start, end, "openclose");
         }
 
         return (
@@ -298,6 +328,8 @@ class Drawflow extends React.Component {
         );
     }
 
+    // TODO : label div size에 따라 위치 조정 필요
+    // TODO : style(z-index, border, background, etc...) 조정 필요
     drawConnectionsLabel = (points, label) => {
         // calc label position
         const pointsLength = points.length;
@@ -315,7 +347,6 @@ class Drawflow extends React.Component {
             }
         }
 
-        // draw component
         return (
         <div
             style={{
@@ -327,115 +358,6 @@ class Drawflow extends React.Component {
         >
             {label}
         </div>);
-    }
-
-    load = async (data) => {
-        const { dataObj } = this.props;
-        const { connections } = data;
-        if(!dataObj || !connections) return;
-
-        let obj = {
-            connections,
-            data: {...dataObj},
-            drawflow: data.nodes,
-        };
-
-        if(data.connectionsLabel) {
-            obj.connectionsLabel = data.connectionsLabel;
-            obj.connectionsLabelEnable = true;
-        }
-
-        const dataKeys = Object.keys(data.nodes).map(key => key*1).sort();
-        if(dataKeys.length > 0) {
-            obj.nodeId = dataKeys.slice(-1)*1 + 1;
-        }
-
-        this.setState({
-            ...obj,
-        });
-    }
-
-    clear = () => {
-        this.setState({
-            nodeId: 1,
-            config: {
-                ...this.state.config,
-                canvasTranslate: {
-                    x: 0,
-                    y: 0,
-                  },
-                zoom: {
-                    ...this.state.config.zoom,
-                    value: 1,
-                },
-            },
-            drawflow: {},
-            connections: {},
-            ports: {},
-            select: null,
-            selectId: null,
-            selectPoint: null,
-            showButton: null,
-            tmpPath: null,
-            modalType: null,
-        });
-    }
-
-    importJson = () => {
-        this.setState({
-            modalType: MODAL_TYPE.import,
-        });
-    }
-
-    exportJson = () => {
-        const { drawflow, connections } = this.state;
-        const nodes = Object.entries(drawflow).reduce((acc, [nodeId, data]) => {
-            return {
-                ...acc,
-                [nodeId]: data,
-            }
-        }, {});
-        const exportData = {
-            nodes,
-            connections,
-        };
-        if(!navigator.clipboard || !navigator.clipboard.writeText) return;
-        navigator.clipboard.writeText(JSON.stringify(exportData, null, 2)).then(() => {
-            alert("json 데이터가 클립보드에 저장되었습니다.");
-        });
-    }
-
-    unSelect = (e) => {
-        // e.preventDefault();
-        e.stopPropagation();
-        // 임시 코드
-        if(document.querySelector(".select"))
-            document.querySelector(".select").classList.remove("select");
-        if(this.state.select) this.state.select.classList.remove("select");
-        this.setState({
-            drag: false,
-            select: null,
-            selectId: null,
-            selectPoint: null,
-            showButton: null,
-        });
-    }
-
-    select = (e, selectInfo) => {
-        e.stopPropagation();
-        if(this.state.select) this.state.select.classList.remove("select");
-        let target = e.currentTarget;
-        const isPort = e.target.classList.contains("input") || e.target.classList.contains("output");
-        const isNotSeletElement = target.tagName === "circle" || isPort;
-        if(!isNotSeletElement)
-            target.classList.add("select");
-        if(isPort) target = e.target;
-        this.setState({
-            drag: isPort? false : true,
-            select: target,
-            selectId: selectInfo && !selectInfo.svgKey? selectInfo : null,
-            selectPoint: selectInfo && selectInfo.svgKey? selectInfo : null,
-        });
     }
     
     getPortListByNodeId = (nodeId) => {
@@ -489,30 +411,7 @@ class Drawflow extends React.Component {
         });
     }
 
-    movePoint = (e, svgKey, i) => {
-        const { drag, select } = this.state;
-        if(!drag) return;
-        if(e.target !== select) return;
-        const { movementX, movementY } = e;
-        if(movementX === 0 && movementY === 0) return;
-        
-        const { connections } = this.state;
-        const oldPos = connections[svgKey][i];
-        const after = {
-            x: oldPos.x + movementX,
-            y: oldPos.y + movementY,
-        }
-        let clone = [...connections[svgKey]];
-        clone[i] = after;
-        this.setState({
-            connections: {
-                ...connections,
-                [svgKey]: clone,
-            }
-        });
-    }
-
-    canvasMove = (e) => {
+    moveCanvas = (e) => {
         e.preventDefault();
         e.stopPropagation();
         const { movementX, movementY } = e;
@@ -529,12 +428,12 @@ class Drawflow extends React.Component {
     }
 
     setPosWithCursorOut = (e) => {
-        const { drag, selectId, selectPoint} = this.state;
+        const { drag, selectId, selectPoint, config} = this.state;
         // typeof selectId === string -> path
         const exitCond = (!this.state.select || !drag) || (!selectId && !selectPoint) || ((typeof selectId) === (typeof ""));
         if(exitCond) return;
 
-        const mousePos = this.getPos(e.clientX, e.clientY);
+        const mousePos = handler.getPos(e.clientX, e.clientY, config.zoom.value);
         const select = {
             top: this.state.select.style.top.slice(0, -2)*1,
             left: this.state.select.style.left.slice(0, -2)*1,
@@ -648,44 +547,6 @@ class Drawflow extends React.Component {
         })
     }
 
-    zoom = {
-        in: () => {
-            const { zoom } = this.state.config;
-            const { value, max, tick } = zoom;
-            if(value >= max) return;
-            this.setConfig("zoom", {
-                ...zoom,
-                value: value + tick,
-            });
-        },
-        out: () => {
-            const { zoom } = this.state.config;
-            const { value, min, tick } = zoom;
-            if(value <= min) return;
-            this.setConfig("zoom", {
-                ...zoom,
-                value: value - tick,
-            });
-        },
-        reset: () => {
-            const { config } = this.state;
-            const { zoom } = config;
-            this.setState({
-                config: {
-                    ...config,
-                    zoom: {
-                        ...zoom,
-                        value: 1,
-                    },
-                    canvasTranslate: {
-                        x: 0,
-                        y: 0,
-                    }
-                }
-            });
-        }
-    }
-
     setData = (nodeId, data) => {
         const { drawflow } = this.state;
         this.setState({
@@ -715,9 +576,9 @@ class Drawflow extends React.Component {
 
     onMouseMoveCanvas = (e) => {
         const { canvasDrag } = this.state;
-        if(canvasDrag) this.canvasMove(e);
+        if(canvasDrag) this.moveCanvas(e);
 
-        const { select } = this.state;
+        const { select, config } = this.state;
         if(select && select.classList.contains("output")) {
             const { clientX, clientY } = e;
             const idx = this.findIndexByElement(select);
@@ -730,9 +591,9 @@ class Drawflow extends React.Component {
                 x: ports[startKey].x,
                 y: ports[startKey].y,
             }
-            const end = this.getPos(clientX, clientY);
+            const end = handler.getPos(clientX, clientY, config.zoom.value);
 
-            const d = createCurvature(start, end, "openclose");
+            const d = handler.createCurvature(start, end, "openclose");
             const path = this.PathComponent(start, end, null, d);
 
             this.setState({
@@ -822,6 +683,33 @@ class Drawflow extends React.Component {
         },
     }
 
+    load = async (data) => {
+        const { dataObj } = this.props;
+        const { connections } = data;
+        if(!dataObj || !connections) return;
+
+        let obj = {
+            connections,
+            data: {...dataObj},
+            drawflow: data.nodes,
+        };
+
+        if(data.connectionsLabel) {
+            obj.connectionsLabel = data.connectionsLabel;
+            obj.connectionsLabelEnable = true;
+        }
+
+        const dataKeys = Object.keys(data.nodes).map(key => key*1).sort();
+        if(dataKeys.length > 0) {
+            obj.nodeId = dataKeys.slice(-1)*1 + 1;
+        }
+
+        this.setState({
+            ...obj,
+        });
+    }
+
+/* Life Cycle Function Start */
     componentDidMount() {
         // TODO : import data from prev page by id
         getDummy().then((data) => {
@@ -831,7 +719,7 @@ class Drawflow extends React.Component {
         });
     }
 
-    componentDidUpdate(prevProps, prevState) {
+    componentDidUpdate(prevProps) {
         if(prevProps.dataObj !==  this.props.dataObj) {
             this.load(cache);
         }
@@ -840,6 +728,106 @@ class Drawflow extends React.Component {
     componentWillUnmount() {
         document.removeEventListener("keydown", this.onKeyDown);
     }
+/* Life Cycle Function End */
+
+/* Button Function Area Start */
+    importJson = () => {
+        this.setState({
+            modalType: MODAL_TYPE.import,
+        });
+    }
+
+    exportJson = () => {
+        const { drawflow, connections, connectionsLabel, connectionsLabelEnable } = this.state;
+        const nodes = Object.entries(drawflow).reduce((acc, [nodeId, data]) => {
+            return {
+                ...acc,
+                [nodeId]: data,
+            }
+        }, {});
+        const exportData = Object.assign({
+            nodes,
+            connections,
+        }, connectionsLabelEnable?{connectionsLabel}:{});
+        if(!navigator.clipboard || !navigator.clipboard.writeText){
+            alert("clipboard api를 지원하지 않는 브라우저입니다.");
+            return;
+        }
+        navigator.clipboard.writeText(JSON.stringify(exportData, null, 2)).then(() => {
+            alert("json 데이터가 클립보드에 저장되었습니다.");
+        });
+    }
+
+    clear = () => {
+        this.setState({
+            nodeId: 1,
+            config: {
+                ...this.state.config,
+                canvasTranslate: {
+                    x: 0,
+                    y: 0,
+                  },
+                zoom: {
+                    ...this.state.config.zoom,
+                    value: 1,
+                },
+            },
+            drawflow: {},
+            connections: {},
+            ports: {},
+            select: null,
+            selectId: null,
+            selectPoint: null,
+            showButton: null,
+            tmpPath: null,
+            modalType: null,
+        });
+    }
+
+    canvasLock = (lock) => {
+        this.setState({
+            editLock: lock,
+        });
+    }
+
+    zoom = {
+        in: () => {
+            const { zoom } = this.state.config;
+            const { value, max, tick } = zoom;
+            if(value >= max) return;
+            this.setConfig("zoom", {
+                ...zoom,
+                value: value + tick,
+            });
+        },
+        out: () => {
+            const { zoom } = this.state.config;
+            const { value, min, tick } = zoom;
+            if(value <= min) return;
+            this.setConfig("zoom", {
+                ...zoom,
+                value: value - tick,
+            });
+        },
+        reset: () => {
+            const { config } = this.state;
+            const { zoom } = config;
+            this.setState({
+                config: {
+                    ...config,
+                    zoom: {
+                        ...zoom,
+                        value: 1,
+                    },
+                    canvasTranslate: {
+                        x: 0,
+                        y: 0,
+                    }
+                }
+            });
+        }
+    }
+/* Button Function Area End */
 
     render () {
         const nodeBlockEvent = this.state.editLock?
@@ -934,11 +922,7 @@ class Drawflow extends React.Component {
                             exportJson={this.exportJson}
                             clear={this.clear}
                             editLock={this.state.editLock}
-                            setEditorMode={(lock) => {
-                                this.setState({
-                                    editLock: lock,
-                                })
-                            }}
+                            setEditorMode={this.canvasLock}
                         />
                         <DrawflowZoomArea
                             zoomIn={this.zoom.in}
@@ -962,7 +946,6 @@ class Drawflow extends React.Component {
                             {Object.values(this.state.drawflow).map((node, idx) => 
                             <DrawflowNodeBlock
                                 key={"drawflow-node-block-" + idx}
-                                getCanvasInfo={this.getCanvasInfo}
                                 zoom={this.state.config.zoom.value}
                                 NodeContent={Nodes[node.type]}
                                 params={node}

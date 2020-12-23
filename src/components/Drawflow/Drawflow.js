@@ -11,7 +11,6 @@ import "./style/drawflow.css";
 
 let cache = {};
 // TODO : 분리 가능한 함수 분리하기
-// TODO : 함수 순서 정리하기
 class Drawflow extends React.Component {
     constructor () {
         super();
@@ -411,22 +410,6 @@ class Drawflow extends React.Component {
         });
     }
 
-    moveCanvas = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const { movementX, movementY } = e;
-        if(movementX === 0 && movementY === 0) return;
-        this.setState({
-            config: {
-                ...this.state.config,
-                canvasTranslate: {
-                    x: this.state.config.canvasTranslate.x + movementX,
-                    y: this.state.config.canvasTranslate.y + movementY,
-                }
-            }
-        });
-    }
-
     setPosWithCursorOut = (e) => {
         const { drag, selectId, selectPoint, config} = this.state;
         // typeof selectId === string -> path
@@ -465,14 +448,20 @@ class Drawflow extends React.Component {
         }
     }
 
-    findIndexByElement = (elmt) => {
-        const { parentElement } = elmt;
-        const arr = Array.from(parentElement.childNodes);
-        
-        for(let i=0;i<arr.length;i++) {
-            if(arr[i] === elmt) return i;
-        }
-        return -1;
+    moveCanvas = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const { movementX, movementY } = e;
+        if(movementX === 0 && movementY === 0) return;
+        this.setState({
+            config: {
+                ...this.state.config,
+                canvasTranslate: {
+                    x: this.state.config.canvasTranslate.x + movementX,
+                    y: this.state.config.canvasTranslate.y + movementY,
+                }
+            }
+        });
     }
 
     createPath = (e, startId, startPort, endId, endPort) => {
@@ -538,28 +527,6 @@ class Drawflow extends React.Component {
         });
     }
 
-    setConfig = (key, value) => {
-        this.setState({
-            config: {
-                ...this.state.config,
-                [key]: value,
-            }
-        })
-    }
-
-    setData = (nodeId, data) => {
-        const { drawflow } = this.state;
-        this.setState({
-            drawflow: {
-                ...drawflow,
-                [nodeId]: {
-                    ...drawflow[nodeId],
-                    data: data,
-                }
-            }
-        });
-    }
-
     pushPorts = (ports) => {
         this.tmpPorts = {
             ...this.tmpPorts,
@@ -581,7 +548,7 @@ class Drawflow extends React.Component {
         const { select, config } = this.state;
         if(select && select.classList.contains("output")) {
             const { clientX, clientY } = e;
-            const idx = this.findIndexByElement(select);
+            const idx = handler.findIndexByElement(select);
             const { ports, selectId } = this.state;
             const startKey = `${selectId}_out_${idx + 1}`;
 
@@ -795,18 +762,28 @@ class Drawflow extends React.Component {
             const { zoom } = this.state.config;
             const { value, max, tick } = zoom;
             if(value >= max) return;
-            this.setConfig("zoom", {
-                ...zoom,
-                value: value + tick,
+            this.setState({
+                config: {
+                    ...this.state.config,
+                    zoom: {
+                        ...zoom,
+                        value: value + tick,
+                    }
+                }
             });
         },
         out: () => {
             const { zoom } = this.state.config;
             const { value, min, tick } = zoom;
             if(value <= min) return;
-            this.setConfig("zoom", {
-                ...zoom,
-                value: value - tick,
+            this.setState({
+                config: {
+                    ...this.state.config,
+                    zoom: {
+                        ...zoom,
+                        value: value - tick,
+                    }
+                }
             });
         },
         reset: () => {
@@ -845,11 +822,22 @@ class Drawflow extends React.Component {
             createPath: (e, endId, endPort) => {
                 const { selectId, select } = this.state;
                 if(selectId === endId) return;
-                const startPort = this.findIndexByElement(select) + 1;
+                const startPort = handler.findIndexByElement(select) + 1;
                 this.createPath(e, selectId, startPort, endId, endPort);
             },
             nodeDelete: this.nodeDelete,
-            setData: this.setData,
+            setData: (nodeId, data) => {
+                const { drawflow } = this.state;
+                this.setState({
+                    drawflow: {
+                        ...drawflow,
+                        [nodeId]: {
+                            ...drawflow[nodeId],
+                            data: data,
+                        }
+                    }
+                });
+            },
         };
 
         return (

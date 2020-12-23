@@ -64,8 +64,19 @@ const getPos = (clientX, clientY, zoom) => {
   }
 }
 
+const findIndexByElement = (elmt) => {
+  const { parentElement } = elmt;
+  const arr = Array.from(parentElement.childNodes);
+  
+  for(let i=0;i<arr.length;i++) {
+      if(arr[i] === elmt) return i;
+  }
+  return -1;
+}
+
 export default {
   createCurvature,
   getCanvasInfo,
   getPos,
+  findIndexByElement,
 }

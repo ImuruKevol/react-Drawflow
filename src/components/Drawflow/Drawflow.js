@@ -2,6 +2,7 @@ import React from "react";
 import DrawflowAdditionalArea from "./ButtonArea/DrawflowAdditionalArea";
 import DrawflowZoomArea from "./ButtonArea/DrawflowZoomArea";
 import DrawflowNodeBlock from "./DrawflowNodeBlock";
+import Connection from "./Connection";
 import DrawflowModal from "./Modal";
 import Nodes from "./Nodes";
 import handler from "./drawflowHandler";
@@ -10,7 +11,6 @@ import getDummy from "./Mock/dummy.mock";    // TODO remove this line
 import "./style/drawflow.css";
 
 let cache = {};
-// TODO : 분리 가능한 함수 분리하기
 class Drawflow extends React.Component {
     constructor () {
         super();
@@ -176,130 +176,39 @@ class Drawflow extends React.Component {
         });
     }
 
-    CircleComponent = (x, y, key, svgKey, i) => {
-        const { editLock } = this.state;
-        return (
-            <circle
-                key={key}
-                xmlns="http://www.w3.org/2000/svg"
-                className="point"
-                style={{
-                    cursor: editLock?"auto":"move"
-                }}
-                cx={x}
-                cy={y}
-                r={6}
-                onMouseDown={e => {
-                    if(editLock) return;
-                    this.select(e, {
-                        svgKey,
-                        i,
-                    });
-                }}
-                onMouseMove={e => {
-                    if(editLock) return;
-                    this.movePoint(e, svgKey, i);
-                }}
-                onDoubleClick={e => {
-                    if(editLock) return;
-                    const { connections } = this.state;
-                    const svgArr = connections[svgKey];
-                    const newSvgArr = svgArr.filter((_, idx) => idx !== i);
-                    this.setState({
-                        connections: {
-                            ...connections,
-                            [svgKey]: newSvgArr,
-                        }
-                    });
-                }}
-            ></circle>
-        );
-    }
-
-    customSort = (arrX, arrY, quadrant) => {
-        let result = [];
-        let cloneX = [...arrX], cloneY = [...arrY];
-
-        const pop = (popXY) => {
-            cloneX = cloneX.filter(item => popXY.x !== item);
-            cloneY = cloneY.filter(item => popXY.y !== item);
-        }
-        const next = () => {
-            const result = quadrant === 1 ? {x: Math.min(...cloneX), y: Math.min(...cloneY)}:
-                           quadrant === 2 ? {x: Math.max(...cloneX), y: Math.min(...cloneY)}:
-                           quadrant === 3 ? {x: Math.max(...cloneX), y: Math.max(...cloneY)}:
-                                            {x: Math.min(...cloneX), y: Math.max(...cloneY)};
-            pop(result);
-            return result;
-        }
-        while(cloneX.length > 0) {
-            result.push(next());
-        }
-        return result;
-    }
-
-    sortPoints = (points, start, end) => {
-        let result = null;
-        let arrayX = [];
-        let arrayY = [];
-        points.reduce((_, val) => {
-            arrayX.push(val.x);
-            arrayY.push(val.y);
-            return null;
-        }, null);
-
-        if(start.x <= end.x && start.y <= end.y) {
-            // 1 quadrant
-            result = this.customSort(arrayX, arrayY, 1);
-        }
-        else if(start.x <= end.x && start.y > end.y) {
-            // 4 quadrant
-            result = this.customSort(arrayX, arrayY, 4);
-        }
-        else if(start.x > end.x && start.y <= end.y) {
-            // 2 quadrant
-            result = this.customSort(arrayX, arrayY, 2);
-        }
-        else {  // start.x > end.x && start.y > end.y
-            // 3 quadrant
-            result = this.customSort(arrayX, arrayY, 3);
-        }
-
-        return result;
-    }
-
-    PathComponent = (start, end, pathKey, d) => {
-        const { editLock } = this.state;
-        return (
-            <path
-                xmlns="http://www.w3.org/2000/svg"
-                className="main-path"
-                d={d}
-                onMouseDown={(e) => {
-                    if(editLock) return;
-                    this.select(e, pathKey);
-                }}
-                onDoubleClick={e => {
-                    if(editLock) return;
-                    const { connections, config } = this.state;
-                    const pos = handler.getPos(e.clientX, e.clientY, config.zoom.value);
-                    if(!pathKey) return;
-                    const newPoints = this.sortPoints([...connections[pathKey], pos], start, end);
-                    this.setState({
-                        connections: {
-                            ...connections,
-                            [pathKey]: newPoints,
-                        }
-                    });
-                }}
-            ></path>
-        );
+    setConnections = (svgKey, newConnections) => {
+        const { connections } = this.state;
+        this.setState({
+            connections: {
+                ...connections,
+                [svgKey]: newConnections,
+            }
+        });
     }
 
     drawConnections = (start, end, points, idx, svgKey) => {
+        const { connections, editLock, config } = this.state;
         let circles = points.reduce((acc, val, i) => {
-            const tmpKey = "draw-flow-svg-" + idx + "circle-" + i;
-            acc.push(this.CircleComponent(val.x, val.y, tmpKey, svgKey, i));
+            const key = "draw-flow-svg-" + idx + "circle-" + i;
+            const property = {
+                key,
+                style: {
+                    cursor: editLock?"auto":"move",
+                },
+                cx: val.x,
+                cy: val.y,
+            }
+            acc.push(
+            <Connection.Circle
+                property={property}
+                points={connections[svgKey]}
+                svgKey={svgKey}
+                i={i}
+                editLock={editLock}
+                select={this.select}
+                movePoint={this.movePoint}
+                setConnections={this.setConnections}
+            />);
             return acc;
         }, []);
         
@@ -321,7 +230,17 @@ class Drawflow extends React.Component {
 
         return (
         <>
-            {this.PathComponent(start, end, svgKey, d)}
+            <Connection.Path
+                editLock={editLock}
+                points={connections[svgKey]}
+                zoom={config.zoom.value}
+                start={start}
+                end={end}
+                svgKey={svgKey}
+                d={d}
+                select={this.select}
+                setConnections={this.setConnections}
+            />
             {circles.map(comp => comp)}
         </>
         );
@@ -545,7 +464,7 @@ class Drawflow extends React.Component {
         const { canvasDrag } = this.state;
         if(canvasDrag) this.moveCanvas(e);
 
-        const { select, config } = this.state;
+        const { select, config, editLock } = this.state;
         if(select && select.classList.contains("output")) {
             const { clientX, clientY } = e;
             const idx = handler.findIndexByElement(select);
@@ -561,7 +480,17 @@ class Drawflow extends React.Component {
             const end = handler.getPos(clientX, clientY, config.zoom.value);
 
             const d = handler.createCurvature(start, end, "openclose");
-            const path = this.PathComponent(start, end, null, d);
+            const path = (
+                <Connection.Path
+                    editLock={editLock}
+                    zoom={config.zoom.value}
+                    start={start}
+                    end={end}
+                    d={d}
+                    select={this.select}
+                    setConnections={this.setConnections}
+                />
+            );
 
             this.setState({
                 tmpPath: path,

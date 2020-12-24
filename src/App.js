@@ -1,77 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import Drawflow from './components/Drawflow/Drawflow';
-import { NODE_CATEGORY } from './common/Enum';
+import { LIST_TYPE, PAGE, RULES, RULES_LIST_TYPE } from './common/Enum';
 import mock from "./components/Drawflow/Mock";
 import './App.css';
 
-// TODO : 시연용 함수 구성. 배포 시에는 하나만 쓰기
 function App() {
-  const [current, setCurrent] = useState(NODE_CATEGORY.FILTER);
-  // original data list
-  const [dataList, setDataList] = useState({
-    [NODE_CATEGORY.FILTER]: null,
-    [NODE_CATEGORY.SINGLE]: null,
-    [NODE_CATEGORY.THRESHOLD]: null,
-  });
-  // cache; cacheing dataList.list
+  // TODO remove
+  const current = window.location.pathname.slice(1).length === 0?RULES.SINGLE:window.location.pathname.slice(1);
+  //* original data list
+  const [dataObj, setDataObj] = useState(null);
+  //* cache; cacheing dataObj.list
   // const [cache, setCache] = useState([]);
   const [canvasData, setCanvasData] = useState(null);
 
   useEffect(() => {
-    getInitData().then(data => {
-      setDataList(data);
+    mock.getFilters(PAGE[current]).then(data => {
+      setDataObj(data);
+      mock.getDummy().then(data => {
+        setCanvasData(data);
+      })
     });
-    mock.getDummy().then(data => {
-      setCanvasData(data);
-    })
   }, []);
 
-  const paging = {
-    [NODE_CATEGORY.FILTER]: 200,
-    [NODE_CATEGORY.SINGLE]: 1000,
-    [NODE_CATEGORY.THRESHOLD]: 1000,
-  }
-
-  const getInitData = async () => {
-    let result = {};
-    result[NODE_CATEGORY.FILTER] = await mock[NODE_CATEGORY.FILTER](paging[NODE_CATEGORY.FILTER]);
-    result[NODE_CATEGORY.SINGLE] = await mock[NODE_CATEGORY.SINGLE](paging[NODE_CATEGORY.SINGLE]);
-    result[NODE_CATEGORY.THRESHOLD] = await mock[NODE_CATEGORY.THRESHOLD](paging[NODE_CATEGORY.THRESHOLD]);
-
-    return result;
-  }
-
   const clearCurrent = () => {
-    setDataList({
-      [current]: null,
-    });
+    setDataObj(null);
   }
 
   const getDataByScroll = async (searchWord = "") => {
-    // get next data
-    let result = await mock[current](paging[current], searchWord);
+    //* get next data
+    let result = await mock.getFilters(PAGE[current], searchWord);
     
-    setDataList({
-      ...dataList,
-      [current]: {
-        ...dataList[current],
-        list: [...dataList[current].list, ...result.list],
-      }
+    setDataObj({
+      ...dataObj,
+      list: [...dataObj.list, ...result.list],
     });
   }
 
+  const isInfinityScroll = RULES_LIST_TYPE[current] !== LIST_TYPE.FILTER;
+
   return (
     <div className="App">
-      {/* {current === NODE_CATEGORY.RULE && <button onClick={() => {setCurrent(NODE_CATEGORY.FILTER)}}>Fields</button>} */}
-      {/* {current === NODE_CATEGORY.FILTER && <button onClick={() => {setCurrent(NODE_CATEGORY.RULE)}}>Rules</button>} */}
+      {/* {current === LIST_TYPE.RULE && <button onClick={() => {setCurrent(LIST_TYPE.FILTER)}}>Fields</button>} */}
+      {/* {current === LIST_TYPE.FILTER && <button onClick={() => {setCurrent(LIST_TYPE.RULE)}}>Rules</button>} */}
+      {canvasData &&
       <Drawflow
-        type={current}
-        dataObj={dataList[current]}
+        type={RULES_LIST_TYPE[current]}
+        dataObj={dataObj}
         canvasData={canvasData}
         getDataByScroll={getDataByScroll}
         clearCurrent={clearCurrent}
-        infinityScroll={current !== NODE_CATEGORY.FILTER}
-      />
+        infinityScroll={isInfinityScroll}
+      />}
     </div>
   );
 }

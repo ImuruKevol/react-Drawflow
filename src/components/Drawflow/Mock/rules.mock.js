@@ -8,8 +8,6 @@ import { MODAL_TYPE } from "../../../common/Enum";
  * addon(optional)
  */
 
-const types = ["Single", "Threshold"];
-
 const isInludeAndSearch = (searchWord, target) => {
     const arr = searchWord.toLowerCase().split(" ").filter(item => item.length > 0);
     return arr.filter(word => target.toLowerCase().includes(word)).length === arr.length;

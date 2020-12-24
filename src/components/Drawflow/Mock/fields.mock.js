@@ -1,4 +1,4 @@
-import { MODAL_TYPE } from "../../../common/Enum";
+import { MODAL_TYPE, LIST_TYPE } from "../../../common/Enum";
 
 const types = ["String", "Numeric", "IP"];
 const modalType = MODAL_TYPE.common;
@@ -24,7 +24,7 @@ export default async (number, searchWord = "") => {
     let names = makeRandomNames(number, searchWord);
     
     return {
-        type: "field",
+        type: LIST_TYPE.FILTER,
         modalType,
         list: names.reduce((acc, val) => {
             acc.push({

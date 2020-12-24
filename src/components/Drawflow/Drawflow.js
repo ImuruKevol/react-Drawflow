@@ -6,10 +6,9 @@ import Connection from "./Connection";
 import DrawflowModal from "./Modal";
 import Nodes from "./Nodes";
 import handler from "./drawflowHandler";
-import { MODAL_TYPE, MODAL_LABEL, NODE_CATEGORY, NODE_MAPPING } from "../../common/Enum";
+import { MODAL_TYPE, MODAL_LABEL, LIST_TYPE, NODE_MAPPING } from "../../common/Enum";
 import "./style/drawflow.css";
 
-let cache = {};
 class Drawflow extends React.Component {
     constructor () {
         super();
@@ -92,10 +91,10 @@ class Drawflow extends React.Component {
     }
 
     getDataByIndex = {
-        [NODE_CATEGORY.FILTER]: (idx) => {
+        [LIST_TYPE.FILTER]: (idx) => {
             return this.props.dataObj.list[idx];
         },
-        [NODE_CATEGORY.RULE]: (idx, type) => {
+        [LIST_TYPE.RULE]: (idx, type) => {
             return this.props.dataObj[type].list[idx];
         },
     }
@@ -548,7 +547,7 @@ class Drawflow extends React.Component {
 
     // TODO : 파일로 분리
     NodeListMenu = {
-        [NODE_CATEGORY.FILTER]: () => {
+        [LIST_TYPE.FILTER]: () => {
             const { dataObj } = this.props;
             if(!dataObj) return;
             const { list } = dataObj;
@@ -558,13 +557,13 @@ class Drawflow extends React.Component {
                 className="drawflow-node-list-wrap"
                 onScroll={this.onScrollNodeList}
             >
-                {list.map((item, idx) => this.NodeListMenuComponent(`[${item.type.slice(0, 1)}] ${item.name}`, NODE_MAPPING[NODE_CATEGORY.FILTER], idx))}
+                {list.map((item, idx) => this.NodeListMenuComponent(`[${item.type.slice(0, 1)}] ${item.name}`, NODE_MAPPING[LIST_TYPE.FILTER], idx))}
             </div>
             );
         },
 
         // TODO : infinity scroll
-        [NODE_CATEGORY.RULE]: () => {
+        [LIST_TYPE.RULE]: () => {
             const { dataObj } = this.props;
             if(!dataObj) return;
             const { single, threshold } = dataObj;
@@ -573,13 +572,13 @@ class Drawflow extends React.Component {
                 <div className="drawflow-node-list-category-wrap">
                     <div className="drawflow-node-list-category">Single</div>
                     <div className="drawflow-node-list-wrap">
-                        {single.list.map((item, idx) => this.NodeListMenuComponent(`${item.name}`, NODE_MAPPING[NODE_CATEGORY.RULE], idx, "single"))}
+                        {single.list.map((item, idx) => this.NodeListMenuComponent(`${item.name}`, NODE_MAPPING[LIST_TYPE.RULE], idx, "single"))}
                     </div>
                 </div>
                 <div className="drawflow-node-list-category-wrap">
                     <div className="drawflow-node-list-category">Threshold</div>
                     <div className="drawflow-node-list-wrap">
-                        {threshold.list.map((item, idx) => this.NodeListMenuComponent(`${item.name}`, NODE_MAPPING[NODE_CATEGORY.RULE], idx, "threshold"))}
+                        {threshold.list.map((item, idx) => this.NodeListMenuComponent(`${item.name}`, NODE_MAPPING[LIST_TYPE.RULE], idx, "threshold"))}
                     </div>
                 </div>
             </>
@@ -592,7 +591,7 @@ class Drawflow extends React.Component {
         this.setState({
             searchWord: e.target.value,
         }, () => {
-            // TODO : NODE_CATEGORY.RULE
+            // TODO : LIST_TYPE.RULE
             // const { searchWord } = this.state;
             // this.props.getDataByScroll(searchWord);
         });
@@ -626,12 +625,6 @@ class Drawflow extends React.Component {
 
 /* Life Cycle Function Start */
     componentDidMount() {
-        // TODO : import data from prev page by id
-        // getDummy().then((data) => {
-        //     cache = Object.assign({}, data);
-        //     this.load(data);
-        //     document.addEventListener("keydown", this.onKeyDown);
-        // });
         if(this.props.canvasData) {
             this.load(this.props.canvasData);
             document.addEventListener("keydown", this.onKeyDown);
@@ -818,7 +811,7 @@ class Drawflow extends React.Component {
                             placeholder="space: and"
                             onChange={this.onChangeSearchWord}
                         />
-                        <button>검색</button>
+                        {this.props.infinityScroll && <button>검색</button>}
                     </div>
                     <div className="drawflow-node-list-flex">
                         {this.NodeListMenu[this.props.type]()}

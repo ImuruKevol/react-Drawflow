@@ -1,4 +1,4 @@
-import { NODE_CATEGORY } from "../../../common/Enum";
+import { LIST_TYPE, RULES } from "../../../common/Enum";
 import getDummy from "./dummy.mock";
 import getFilters from "./fields.mock";
 import { 
@@ -8,7 +8,7 @@ import {
 
 export default {
     getDummy,
-    [NODE_CATEGORY.FILTER]: getFilters,
-    [NODE_CATEGORY.SINGLE]: getSingle,
-    [NODE_CATEGORY.THRESHOLD]: getThreshold,
+    getFilters,
+    getSingle,
+    getThreshold,
 }

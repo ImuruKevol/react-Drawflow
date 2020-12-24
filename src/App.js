@@ -5,7 +5,7 @@ import mock from "./components/Drawflow/Mock";
 import './App.css';
 
 function App() {
-  // TODO remove
+  // TODO change logic
   const current = window.location.pathname.slice(1).length === 0?RULES.SINGLE:window.location.pathname.slice(1);
   //* original data list
   const [dataObj, setDataObj] = useState(null);
@@ -13,13 +13,24 @@ function App() {
   // const [cache, setCache] = useState([]);
   const [canvasData, setCanvasData] = useState(null);
 
-  useEffect(() => {
-    mock.getFilters(PAGE[current]).then(data => {
-      setDataObj(data);
-      mock.getDummy().then(data => {
-        setCanvasData(data);
-      })
-    });
+  useEffect(async () => {
+    let result = null;
+    switch(RULES_LIST_TYPE[current]) {
+      case LIST_TYPE.FILTER:
+        result = await mock.getFilters(PAGE[current]);
+        break;
+      case LIST_TYPE.RULE:
+        result = {
+          [RULES.SINGLE]: await mock.getSingle(PAGE[current]),
+          [RULES.THRESHOLD]: await mock.getThreshold(PAGE[current]),
+        }
+        break;
+    }
+    setDataObj(result);
+    // TODO type별로 dummy 따로 만들기
+    mock.getDummy().then(data => {
+      setCanvasData(data);
+    })
   }, []);
 
   const clearCurrent = () => {

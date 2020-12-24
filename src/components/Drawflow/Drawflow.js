@@ -6,7 +6,7 @@ import Connection from "./Connection";
 import DrawflowModal from "./Modal";
 import Nodes from "./Nodes";
 import handler from "./drawflowHandler";
-import { MODAL_TYPE, MODAL_LABEL, LIST_TYPE, NODE_MAPPING } from "../../common/Enum";
+import { MODAL_TYPE, MODAL_LABEL, LIST_TYPE, NODE_MAPPING, RULES } from "../../common/Enum";
 import "./style/drawflow.css";
 
 class Drawflow extends React.Component {
@@ -329,7 +329,7 @@ class Drawflow extends React.Component {
 
     setPosWithCursorOut = (e) => {
         const { drag, selectId, selectPoint, config} = this.state;
-        // typeof selectId === string -> path
+        //* typeof selectId === string -> path
         const exitCond = (!this.state.select || !drag) || (!selectId && !selectPoint) || ((typeof selectId) === (typeof ""));
         if(exitCond) return;
 
@@ -535,14 +535,15 @@ class Drawflow extends React.Component {
     }
 
     onScrollNodeList = e => {
-        if(!this.props.infinityScroll) return;
+        // TODO backend와 로직 정리 후 추가
+        // if(!this.props.infinityScroll) return;
         
-        const { searchWord } = this.state;
-        const { scrollHeight, scrollTop, clientHeight } = e.target;
-        const scroll = scrollHeight - scrollTop;
-        if(scroll === clientHeight) {
-            this.props.getDataByScroll();
-        }
+        // const { searchWord } = this.state;
+        // const { scrollHeight, scrollTop, clientHeight } = e.target;
+        // const scroll = scrollHeight - scrollTop;
+        // if(scroll === clientHeight) {
+        //     this.props.getDataByScroll();
+        // }
     }
 
     // TODO : 파일로 분리
@@ -572,13 +573,13 @@ class Drawflow extends React.Component {
                 <div className="drawflow-node-list-category-wrap">
                     <div className="drawflow-node-list-category">Single</div>
                     <div className="drawflow-node-list-wrap">
-                        {single.list.map((item, idx) => this.NodeListMenuComponent(`${item.name}`, NODE_MAPPING[LIST_TYPE.RULE], idx, "single"))}
+                        {single.list.map((item, idx) => this.NodeListMenuComponent(`[${10001 + idx}] ${item.name}`, NODE_MAPPING[LIST_TYPE.RULE], idx, RULES.SINGLE))}
                     </div>
                 </div>
                 <div className="drawflow-node-list-category-wrap">
                     <div className="drawflow-node-list-category">Threshold</div>
                     <div className="drawflow-node-list-wrap">
-                        {threshold.list.map((item, idx) => this.NodeListMenuComponent(`${item.name}`, NODE_MAPPING[LIST_TYPE.RULE], idx, "threshold"))}
+                        {threshold.list.map((item, idx) => this.NodeListMenuComponent(`[${50001 + idx}] ${item.name}`, NODE_MAPPING[LIST_TYPE.RULE], idx, RULES.THRESHOLD))}
                     </div>
                 </div>
             </>
@@ -604,7 +605,6 @@ class Drawflow extends React.Component {
 
         let obj = {
             connections,
-            data: {...dataObj},
             drawflow: data.nodes,
         };
 

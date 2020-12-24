@@ -8,6 +8,8 @@ import Nodes from "./Nodes";
 import handler from "./drawflowHandler";
 import { MODAL_TYPE, MODAL_LABEL, NODE_CATEGORY, NODE_MAPPING } from "../../common/Enum";
 import getDummy from "./Mock/dummy.mock";    // TODO remove this line
+import getDummyFields from "./Mock/fields.mock";
+import getDummyRules from "./Mock/rules.mock";
 import "./style/drawflow.css";
 
 let cache = {};
@@ -513,6 +515,7 @@ class Drawflow extends React.Component {
 
     isInludeAndSearch = (target) => {
         const { searchWord } = this.state;
+        // const arr = this.searchWord.toLowerCase().split(" ").filter(item => item.length > 0);
         const arr = searchWord.toLowerCase().split(" ").filter(item => item.length > 0);
         return arr.filter(word => target.toLowerCase().includes(word)).length === arr.length;
     }
@@ -535,6 +538,17 @@ class Drawflow extends React.Component {
         );
     }
 
+    onScrollNodeList = e => {
+        const { searchWord } = this.state;
+        if(searchWord.length > 0) return;
+
+        const { scrollHeight, scrollTop, clientHeight } = e.target;
+        const scroll = scrollHeight - scrollTop;
+        if(scroll === clientHeight) {
+            // TODO
+        }
+    }
+
     // TODO : 파일로 분리
     NodeListMenu = {
         [NODE_CATEGORY.FIELD]: () => {
@@ -545,17 +559,14 @@ class Drawflow extends React.Component {
             return (
             <div
                 className="drawflow-node-list-wrap"
-                onScroll={e => {
-                    const { scrollHeight, scrollTop, clientHeight } = e.target;
-                    const scroll = scrollHeight - scrollTop;
-                    if(scroll === clientHeight) this.props.getDataByScroll();
-                }}
+                onScroll={this.onScrollNodeList}
             >
                 {list.map((item, idx) => this.NodeListMenuComponent(`[${item.type.slice(0, 1)}] ${item.name}`, NODE_MAPPING[NODE_CATEGORY.FIELD], idx))}
             </div>
             );
         },
 
+        // TODO : infinity scroll
         [NODE_CATEGORY.RULE]: () => {
             const { dataObj } = this.props;
             if(!dataObj) return;
@@ -577,6 +588,17 @@ class Drawflow extends React.Component {
             </>
             );
         },
+    }
+
+    onChangeSearchWord = e => {
+        // this.props.clearCache();
+        this.setState({
+            searchWord: e.target.value,
+        }, () => {
+            const { searchWord } = this.state;
+            // TODO
+            // this.props.getDataByScroll();
+        });
     }
 
     load = async (data) => {
@@ -797,9 +819,9 @@ class Drawflow extends React.Component {
                     <div className="drawflow-node-list-search">
                         <input
                             type="text"
-                            value={this.state.searchWord}
+                            // value={this.state.searchWord}
                             placeholder="space: and"
-                            onChange={e => {this.setState({searchWord: e.target.value})}}
+                            onChange={this.onChangeSearchWord}
                         />
                         <button>검색</button>
                     </div>

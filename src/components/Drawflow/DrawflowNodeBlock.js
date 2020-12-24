@@ -14,18 +14,6 @@ const DrawflowNodeBlock = ({
     showModal,
     event,
 }) => {
-    // params
-    // {
-    //     id: nodeId,
-    //     type: type,
-    //     data: data,
-    //     port: {in: Number, out: Number}
-    //     pos: {
-    //         x: Double,
-    //         y: Double,
-    //     },
-    // };
-
     const [refs, setRefs] = useState({
         inputs: [],
         outputs: [],

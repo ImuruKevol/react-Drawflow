@@ -9,7 +9,13 @@ import { MODAL_TYPE } from "../../../common/Enum";
  */
 
 const types = ["Single", "Threshold"];
-const makeRandomNames = (length) => {
+
+const isInludeAndSearch = (searchWord, target) => {
+    const arr = searchWord.toLowerCase().split(" ").filter(item => item.length > 0);
+    return arr.filter(word => target.toLowerCase().includes(word)).length === arr.length;
+}
+
+const makeRandomNames = (length, searchWord) => {
     const result = [];
     const map = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     for(let j=0;j<length;j++) {
@@ -17,13 +23,15 @@ const makeRandomNames = (length) => {
         for (let i=0;i<Math.floor(Math.random() * 15 + 5);i++) {
            word += map.charAt(Math.floor(Math.random() * map.length));
         }
-        result.push(word);
+        if(isInludeAndSearch(searchWord, word)) {
+            result.push(word);
+        }
     }
     return result;
  }
 
-const getSingle = async (number) => {
-    let names = makeRandomNames(number);
+const getSingle = async (number, searchWord = "") => {
+    let names = makeRandomNames(number, searchWord);
     return {
         modalType: MODAL_TYPE.single,
         list: names.reduce((acc, val) => {
@@ -36,8 +44,8 @@ const getSingle = async (number) => {
 }
 
 
-const getThreshold = async (number) => {
-    let names = makeRandomNames(number);
+const getThreshold = async (number, searchWord = "") => {
+    let names = makeRandomNames(number, searchWord);
     return {
         modalType: MODAL_TYPE.threshold,
         list: names.reduce((acc, val) => {
@@ -49,7 +57,7 @@ const getThreshold = async (number) => {
     };
 }
 
-
+// TODO : single, threshold 분리
 export default async (number) => {
     
     return {

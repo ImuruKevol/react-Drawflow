@@ -1,9 +1,9 @@
-import './App.css';
+import React, { useState, useEffect } from 'react';
 import Drawflow from './components/Drawflow/Drawflow';
 import { NODE_CATEGORY } from './common/Enum';
 import getDummyFields from "./components/Drawflow/Mock/fields.mock";
 import getDummyRules from "./components/Drawflow/Mock/rules.mock";
-import { useState, useEffect } from 'react';
+import './App.css';
 
 function App() {
   const [current, setCurrent] = useState(NODE_CATEGORY.FIELD);
@@ -17,12 +17,10 @@ function App() {
 
     let result = null;
     if(current === NODE_CATEGORY.RULE) {
-      console.debug("get dummy rules!");
-      result = getDummyRules(200);
+      result = getDummyRules(10);
     }
     else if(current === NODE_CATEGORY.FIELD) {
-      console.debug("get dummy fields!");
-      result = getDummyFields(200);
+      result = getDummyFields(10);
     }
 
     result.then(dataObj => {
@@ -33,38 +31,60 @@ function App() {
     });
   }, [current]);
 
-  // TODO : queue 만들기; 무한 스크롤, 페이징에 사용
+  const clearCache = () => {
+    setCache({
+      [current]: null,
+    });
+  }
 
-  const getDataByScroll = async (type) => {
-    let result = null;
+  const pushDataObj = (type, dataObj) => {
     let obj = null;
-    if(current === NODE_CATEGORY.FIELD) {
-      console.debug("get dummy fields!");
-      result = (await getDummyFields(200)).list;
-      obj = {
-        ...cache[current],
-        list: [...cache[current].list, ...result],
+    if(type === NODE_CATEGORY.FIELD) {
+      obj = {...cache[current]};
+      console.log(cache[current])
+      try{
+        obj.list = [...cache[current].list, ...dataObj.list];
+      }
+      catch{
+        obj.list = [...dataObj.list];
       }
     }
-    else if(current === NODE_CATEGORY.RULE) {
-      console.debug("get dummy rules!");
-      result = await getDummyRules(200);
+    else if(type === NODE_CATEGORY.RULE) {
       obj = {
         ...cache[current],
         single: {
           ...cache[current].single,
-          list: [...cache[current].single.list, ...result.single.list],
         },
         threshold: {
           ...cache[current].threshold,
-          list: [...cache[current].threshold.list, ...result.threshold.list],
         },
+      }
+      try{
+        obj.single.list = [...cache[current].single.list, ...dataObj.single.list];
+        obj.threshold.list = [...cache[current].threshold.list, ...dataObj.threshold.list];
+      }
+      catch{
+        obj.single.list = [...dataObj.single.list];
+        obj.threshold.list = [...dataObj.threshold.list];
       }
     }
     setCache({
       ...cache,
-      [current]: obj,
-    });
+      [type]: obj,
+    })
+  }
+
+  // TODO : 이전 입력값과 현재 입력값 비교하여 length 증가이면 현재 cache 배열 사용하기
+  // TODO : 전체 리스트는 따로 관리하기
+  const getDataByScroll = async (searchWord = "") => {
+    let result = null;
+    if(current === NODE_CATEGORY.FIELD) {
+      result = (await getDummyFields(10, searchWord));
+    }
+    else if(current === NODE_CATEGORY.RULE) {
+      result = await getDummyRules(10, searchWord);
+    }
+    pushDataObj(current, result);
   }
 
   return (
@@ -75,6 +95,8 @@ function App() {
         type={current}
         dataObj={cache[current]}
         getDataByScroll={getDataByScroll}
+        pushDataObj={pushDataObj}
+        clearCache={clearCache}
       />
     </div>
   );

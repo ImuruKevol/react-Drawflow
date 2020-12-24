@@ -15,16 +15,18 @@ const MODAL_LABEL = {
 }
 
 const NODE_CATEGORY = {
-    FIELD: "field",
-    RULE: "rule",
+    FILTER: "filter",
+    SINGLE: "single",
+    THRESHOLD: "threshold",
 }
 
 /**
  * node type(Common, Round) <-> node category(field, rule) mapping
  */
 const NODE_MAPPING = {
-    [NODE_CATEGORY.FIELD]: "Common",
-    [NODE_CATEGORY.RULE]: "Round",
+    [NODE_CATEGORY.FILTER]: "Common",
+    [NODE_CATEGORY.SINGLE]: "Round",
+    [NODE_CATEGORY.THRESHOLD]: "Round",
 }
 
 export {

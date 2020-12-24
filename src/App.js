@@ -1,102 +1,76 @@
 import React, { useState, useEffect } from 'react';
 import Drawflow from './components/Drawflow/Drawflow';
 import { NODE_CATEGORY } from './common/Enum';
-import getDummyFields from "./components/Drawflow/Mock/fields.mock";
-import getDummyRules from "./components/Drawflow/Mock/rules.mock";
+import mock from "./components/Drawflow/Mock";
 import './App.css';
 
+// TODO : 시연용 함수 구성. 배포 시에는 하나만 쓰기
 function App() {
-  const [current, setCurrent] = useState(NODE_CATEGORY.FIELD);
-  const [cache, setCache] = useState({
-    [NODE_CATEGORY.FIELD]: null,
-    [NODE_CATEGORY.RULE]: null,
+  const [current, setCurrent] = useState(NODE_CATEGORY.FILTER);
+  // original data list
+  const [dataList, setDataList] = useState({
+    [NODE_CATEGORY.FILTER]: null,
+    [NODE_CATEGORY.SINGLE]: null,
+    [NODE_CATEGORY.THRESHOLD]: null,
   });
-  
+  // cache; cacheing dataList.list
+  // const [cache, setCache] = useState([]);
+  const [canvasData, setCanvasData] = useState(null);
+
   useEffect(() => {
-    if(cache[current]) return;
-
-    let result = null;
-    if(current === NODE_CATEGORY.RULE) {
-      result = getDummyRules(10);
-    }
-    else if(current === NODE_CATEGORY.FIELD) {
-      result = getDummyFields(10);
-    }
-
-    result.then(dataObj => {
-      setCache({
-        ...cache,
-        [current]: dataObj,
-      })
+    getInitData().then(data => {
+      setDataList(data);
     });
-  }, [current]);
+    mock.getDummy().then(data => {
+      setCanvasData(data);
+    })
+  }, []);
 
-  const clearCache = () => {
-    setCache({
+  const paging = {
+    [NODE_CATEGORY.FILTER]: 200,
+    [NODE_CATEGORY.SINGLE]: 1000,
+    [NODE_CATEGORY.THRESHOLD]: 1000,
+  }
+
+  const getInitData = async () => {
+    let result = {};
+    result[NODE_CATEGORY.FILTER] = await mock[NODE_CATEGORY.FILTER](paging[NODE_CATEGORY.FILTER]);
+    result[NODE_CATEGORY.SINGLE] = await mock[NODE_CATEGORY.SINGLE](paging[NODE_CATEGORY.SINGLE]);
+    result[NODE_CATEGORY.THRESHOLD] = await mock[NODE_CATEGORY.THRESHOLD](paging[NODE_CATEGORY.THRESHOLD]);
+
+    return result;
+  }
+
+  const clearCurrent = () => {
+    setDataList({
       [current]: null,
     });
   }
 
-  const pushDataObj = (type, dataObj) => {
-    let obj = null;
-    if(type === NODE_CATEGORY.FIELD) {
-      obj = {...cache[current]};
-      console.log(cache[current])
-      try{
-        obj.list = [...cache[current].list, ...dataObj.list];
-      }
-      catch{
-        obj.list = [...dataObj.list];
-      }
-    }
-    else if(type === NODE_CATEGORY.RULE) {
-      obj = {
-        ...cache[current],
-        single: {
-          ...cache[current].single,
-        },
-        threshold: {
-          ...cache[current].threshold,
-        },
-      }
-      try{
-        obj.single.list = [...cache[current].single.list, ...dataObj.single.list];
-        obj.threshold.list = [...cache[current].threshold.list, ...dataObj.threshold.list];
-      }
-      catch{
-        obj.single.list = [...dataObj.single.list];
-        obj.threshold.list = [...dataObj.threshold.list];
-      }
-    }
-    setCache({
-      ...cache,
-      [type]: obj,
-    })
-  }
-
-  // TODO : 이전 입력값과 현재 입력값 비교하여 length 증가이면 현재 cache 배열 사용하기
-  // TODO : 전체 리스트는 따로 관리하기
   const getDataByScroll = async (searchWord = "") => {
-    let result = null;
-    if(current === NODE_CATEGORY.FIELD) {
-      result = (await getDummyFields(10, searchWord));
-    }
-    else if(current === NODE_CATEGORY.RULE) {
-      result = await getDummyRules(10, searchWord);
-    }
-    pushDataObj(current, result);
+    // get next data
+    let result = await mock[current](paging[current], searchWord);
+    
+    setDataList({
+      ...dataList,
+      [current]: {
+        ...dataList[current],
+        list: [...dataList[current].list, ...result.list],
+      }
+    });
   }
 
   return (
     <div className="App">
-      {current === NODE_CATEGORY.RULE && <button onClick={() => {setCurrent(NODE_CATEGORY.FIELD)}}>Fields</button>}
-      {current === NODE_CATEGORY.FIELD && <button onClick={() => {setCurrent(NODE_CATEGORY.RULE)}}>Rules</button>}
+      {/* {current === NODE_CATEGORY.RULE && <button onClick={() => {setCurrent(NODE_CATEGORY.FILTER)}}>Fields</button>} */}
+      {/* {current === NODE_CATEGORY.FILTER && <button onClick={() => {setCurrent(NODE_CATEGORY.RULE)}}>Rules</button>} */}
       <Drawflow
         type={current}
-        dataObj={cache[current]}
+        dataObj={dataList[current]}
+        canvasData={canvasData}
         getDataByScroll={getDataByScroll}
-        pushDataObj={pushDataObj}
-        clearCache={clearCache}
+        clearCurrent={clearCurrent}
+        infinityScroll={current !== NODE_CATEGORY.FILTER}
       />
     </div>
   );

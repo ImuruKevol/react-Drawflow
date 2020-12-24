@@ -7,9 +7,6 @@ import DrawflowModal from "./Modal";
 import Nodes from "./Nodes";
 import handler from "./drawflowHandler";
 import { MODAL_TYPE, MODAL_LABEL, NODE_CATEGORY, NODE_MAPPING } from "../../common/Enum";
-import getDummy from "./Mock/dummy.mock";    // TODO remove this line
-import getDummyFields from "./Mock/fields.mock";
-import getDummyRules from "./Mock/rules.mock";
 import "./style/drawflow.css";
 
 let cache = {};
@@ -95,7 +92,7 @@ class Drawflow extends React.Component {
     }
 
     getDataByIndex = {
-        [NODE_CATEGORY.FIELD]: (idx) => {
+        [NODE_CATEGORY.FILTER]: (idx) => {
             return this.props.dataObj.list[idx];
         },
         [NODE_CATEGORY.RULE]: (idx, type) => {
@@ -539,19 +536,19 @@ class Drawflow extends React.Component {
     }
 
     onScrollNodeList = e => {
+        if(!this.props.infinityScroll) return;
+        
         const { searchWord } = this.state;
-        if(searchWord.length > 0) return;
-
         const { scrollHeight, scrollTop, clientHeight } = e.target;
         const scroll = scrollHeight - scrollTop;
         if(scroll === clientHeight) {
-            // TODO
+            this.props.getDataByScroll();
         }
     }
 
     // TODO : 파일로 분리
     NodeListMenu = {
-        [NODE_CATEGORY.FIELD]: () => {
+        [NODE_CATEGORY.FILTER]: () => {
             const { dataObj } = this.props;
             if(!dataObj) return;
             const { list } = dataObj;
@@ -561,7 +558,7 @@ class Drawflow extends React.Component {
                 className="drawflow-node-list-wrap"
                 onScroll={this.onScrollNodeList}
             >
-                {list.map((item, idx) => this.NodeListMenuComponent(`[${item.type.slice(0, 1)}] ${item.name}`, NODE_MAPPING[NODE_CATEGORY.FIELD], idx))}
+                {list.map((item, idx) => this.NodeListMenuComponent(`[${item.type.slice(0, 1)}] ${item.name}`, NODE_MAPPING[NODE_CATEGORY.FILTER], idx))}
             </div>
             );
         },
@@ -591,13 +588,13 @@ class Drawflow extends React.Component {
     }
 
     onChangeSearchWord = e => {
-        // this.props.clearCache();
+        // this.props.clearCurrent();
         this.setState({
             searchWord: e.target.value,
         }, () => {
-            const { searchWord } = this.state;
-            // TODO
-            // this.props.getDataByScroll();
+            // TODO : NODE_CATEGORY.RULE
+            // const { searchWord } = this.state;
+            // this.props.getDataByScroll(searchWord);
         });
     }
 
@@ -630,16 +627,14 @@ class Drawflow extends React.Component {
 /* Life Cycle Function Start */
     componentDidMount() {
         // TODO : import data from prev page by id
-        getDummy().then((data) => {
-            cache = Object.assign({}, data);
-            this.load(data);
+        // getDummy().then((data) => {
+        //     cache = Object.assign({}, data);
+        //     this.load(data);
+        //     document.addEventListener("keydown", this.onKeyDown);
+        // });
+        if(this.props.canvasData) {
+            this.load(this.props.canvasData);
             document.addEventListener("keydown", this.onKeyDown);
-        });
-    }
-
-    componentDidUpdate(prevProps) {
-        if(prevProps.dataObj !==  this.props.dataObj) {
-            this.load(cache);
         }
     }
 

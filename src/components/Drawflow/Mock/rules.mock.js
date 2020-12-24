@@ -33,6 +33,7 @@ const makeRandomNames = (length, searchWord) => {
 const getSingle = async (number, searchWord = "") => {
     let names = makeRandomNames(number, searchWord);
     return {
+        type: "rule_single",
         modalType: MODAL_TYPE.single,
         list: names.reduce((acc, val) => {
             acc.push({
@@ -47,6 +48,7 @@ const getSingle = async (number, searchWord = "") => {
 const getThreshold = async (number, searchWord = "") => {
     let names = makeRandomNames(number, searchWord);
     return {
+        type: "rule_threshold",
         modalType: MODAL_TYPE.threshold,
         list: names.reduce((acc, val) => {
             acc.push({
@@ -57,12 +59,7 @@ const getThreshold = async (number, searchWord = "") => {
     };
 }
 
-// TODO : single, threshold 분리
-export default async (number) => {
-    
-    return {
-        type: "rule",
-        single: await getSingle(number),
-        threshold: await getThreshold(number),
-    };
+export {
+    getSingle,
+    getThreshold,
 }

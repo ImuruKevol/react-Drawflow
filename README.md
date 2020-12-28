@@ -4,6 +4,8 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 And, Convert [Drawflow](https://github.com/jerosoler/Drawflow) for react.
 
+*수정 중*
+
 ## Add Node type
 
 1. Create new Component file to `src/components/Drawflow/Nodes/`.

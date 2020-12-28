@@ -8,17 +8,15 @@ import Nodes from "./Nodes";
 import handler from "./drawflowHandler";
 import { MODAL_TYPE, MODAL_LABEL, LIST_TYPE, NODE_MAPPING, RULES } from "../../common/Enum";
 import "./style/drawflow.css";
-import FilterList from "./NodeListMenu/FilterList";
-import RuleList from "./NodeListMenu/RuleList";
 
 class Drawflow extends React.Component {
     constructor () {
         super();
         this.state = {
             nodeId: 1,
+            canvasDrag: false,
             config: {
                 drag: false,
-                canvasDrag: false,
                 connectionsLabelEnable: false,
                 canvasTranslate: {
                     x: 0,
@@ -35,32 +33,14 @@ class Drawflow extends React.Component {
             connections: {},
             connectionsLabel: {},
             ports: {},
-            editLock: false,
-            select: null,                   // TODO: move select(new object state)
-            selectId: null,                 // TODO: move select(new object state)
-            selectPoint: null,              // TODO: move select(new object state)
+            select: null,
+            selectId: null,
+            selectPoint: null,
             showButton: null,
             newPathDirection: null,
             modalType: null,
-            searchWord: "",
         }
         this.tmpPorts = {};
-    }
-
-    makePortObj = (port) => {
-        let obj = {
-            inputs: {},
-            outputs: {},
-        };
-
-        for(let i=1;i<=port.in;i++) {
-            obj.inputs[`input_${i}`] = {connections: []};
-        }
-        for(let i=1;i<=port.out;i++) {
-            obj.outputs[`output_${i}`] = {connections: []};
-        }
-
-        return obj;
     }
 
     /**
@@ -77,7 +57,6 @@ class Drawflow extends React.Component {
             type: nodeType,
             data,
             port,
-            connections: this.makePortObj(port),
             pos: {
                 x: pos.x,
                 y: pos.y,
@@ -103,8 +82,8 @@ class Drawflow extends React.Component {
 
     addNodeToDrawFlow = (nodeType, x, y, idx, menuType) => {
         const { type } = this.props;
-        const { editLock, config } = this.state;
-        if(editLock) return;
+        const { config } = this.state;
+        if(this.props.editLock) return;
         const pos = handler.getPos(x, y, config.zoom.value);
         this.addNode(nodeType, {in: 1, out: 1}, pos, this.getDataByIndex[type](idx, menuType));
     }
@@ -194,13 +173,13 @@ class Drawflow extends React.Component {
     }
 
     drawConnections = (start, end, points, idx, svgKey) => {
-        const { connections, editLock, config } = this.state;
+        const { connections, config } = this.state;
         let circles = points.reduce((acc, val, i) => {
             const key = "draw-flow-svg-" + idx + "circle-" + i;
             const property = {
                 key,
                 style: {
-                    cursor: editLock?"auto":"move",
+                    cursor: this.props.editLock?"auto":"move",
                 },
                 cx: val.x,
                 cy: val.y,
@@ -211,7 +190,7 @@ class Drawflow extends React.Component {
                 points={connections[svgKey]}
                 svgKey={svgKey}
                 i={i}
-                editLock={editLock}
+                editLock={this.props.editLock}
                 select={this.select}
                 movePoint={this.movePoint}
                 setConnections={this.setConnections}
@@ -238,7 +217,7 @@ class Drawflow extends React.Component {
         return (
         <>
             <Connection.Path
-                editLock={editLock}
+                editLock={this.props.editLock}
                 points={connections[svgKey]}
                 zoom={config.zoom.value}
                 start={start}
@@ -405,7 +384,7 @@ class Drawflow extends React.Component {
     }
 
     nodeDelete = () => {
-        if(this.state.editLock) return;
+        if(this.props.editLock) return;
         const { connections, drawflow, ports, selectId } = this.state;
         if(!selectId) return;
         let obj = {
@@ -444,7 +423,7 @@ class Drawflow extends React.Component {
     }
 
     pathDelete = () => {
-        if(this.state.editLock) return;
+        if(this.props.editLock) return;
         const { selectId, connections } = this.state;
         let newConnections = {...connections};
         delete newConnections[selectId];
@@ -468,8 +447,8 @@ class Drawflow extends React.Component {
     }
 
     onMouseMoveCanvas = (e) => {
-        const { config } = this.state;
-        if(config.canvasDrag) this.moveCanvas(e);
+        const { canvasDrag } = this.state;
+        if(canvasDrag) this.moveCanvas(e);
 
         const { select } = this.state;
         if(select && select.classList.contains("output")) {
@@ -485,6 +464,30 @@ class Drawflow extends React.Component {
         this.setPosWithCursorOut(e);
     }
 
+    onMouseDownCanvas = e => {
+        if(e.target.id !== "drawflow" && !e.target.classList.contains("drawflow")) return;
+        this.setState({
+            canvasDrag: true,
+        });
+        this.unSelect(e);
+    }
+
+    onMouseUpCanvas = e => {
+        let obj = {
+            newPathDirection: null,
+            canvasDrag: false,
+            config: {
+                ...this.state.config,
+                drag: false,
+            }
+        }
+        const { select } = this.state;
+        if(select && select.classList.contains("output")) {
+            obj.select = null;
+        }
+        this.setState(obj);
+    }
+
     onKeyDown = (e) => {
         if(e.key === "Delete"){
             const { select } = this.state;
@@ -497,14 +500,8 @@ class Drawflow extends React.Component {
         }
     }
 
-    isIncludeAndSearch = (target) => {
-        const { searchWord } = this.state;
-        const arr = searchWord.toLowerCase().split(" ").filter(item => item.length > 0);
-        return arr.filter(word => target.toLowerCase().includes(word)).length === arr.length;
-    }
-
     onChangeSearchWord = e => {
-        this.setState({
+        this.props.setSearchWord({
             searchWord: e.target.value,
         });
     }
@@ -538,7 +535,7 @@ class Drawflow extends React.Component {
     }
 
     newPath = () => {
-        const { select, config, ports, selectId, editLock, newPathDirection } = this.state;
+        const { select, config, ports, selectId, newPathDirection } = this.state;
         const idx = handler.findIndexByElement(select);
         const startKey = `${selectId}_out_${idx + 1}`;
 
@@ -559,7 +556,7 @@ class Drawflow extends React.Component {
                 className="drawflow-connection"
             >
                 <Connection.Path
-                    editLock={editLock}
+                    editLock={this.props.editLock}
                     zoom={zoom}
                     start={start}
                     end={end}
@@ -620,7 +617,7 @@ class Drawflow extends React.Component {
                 canvasTranslate: {
                     x: 0,
                     y: 0,
-                  },
+                },
                 zoom: {
                     ...this.state.config.zoom,
                     value: 1,
@@ -638,63 +635,38 @@ class Drawflow extends React.Component {
         });
     }
 
-    canvasLock = (lock) => {
-        this.setState({
-            editLock: lock,
-        });
-    }
-
-    zoom = {
-        in: () => {
-            const { zoom } = this.state.config;
-            const { value, max, tick } = zoom;
-            if(value >= max) return;
-            this.setState({
-                config: {
-                    ...this.state.config,
-                    zoom: {
-                        ...zoom,
-                        value: value + tick,
-                    }
-                }
-            });
-        },
-        out: () => {
-            const { zoom } = this.state.config;
-            const { value, min, tick } = zoom;
-            if(value <= min) return;
-            this.setState({
-                config: {
-                    ...this.state.config,
-                    zoom: {
-                        ...zoom,
-                        value: value - tick,
-                    }
-                }
-            });
-        },
-        reset: () => {
-            const { config } = this.state;
-            const { zoom } = config;
-            this.setState({
-                config: {
-                    ...config,
-                    zoom: {
-                        ...zoom,
-                        value: 1,
-                    },
-                    canvasTranslate: {
-                        x: 0,
-                        y: 0,
-                    }
-                }
-            });
+    /**
+     * @param {Boolean} plag true: zoom in, false: zoom out, null: zoom reset
+     */
+    zoom = (plag) => {
+        const { zoom } = this.state.config;
+        const { value, max, min, tick } = zoom;
+        let afterZoom = plag? value + tick : value - tick;
+        let obj = {
+            zoom: {
+                ...zoom,
+                value: afterZoom,
+            }
         }
+        if(plag === null) {
+            obj.zoom.value = 1;
+            obj.canvasTranslate = {
+                x: 0,
+                y: 0,
+            }
+        }
+        if(afterZoom > max || afterZoom < min) return;
+        this.setState({
+            config: {
+                ...this.state.config,
+                ...obj,
+            }
+        });
     }
 /* Button Function Area End */
 
     render () {
-        const nodeBlockEvent = this.state.editLock?
+        const nodeBlockEvent = this.props.editLock?
         {
             select: () => {},
             moveNode: () => {},
@@ -751,64 +723,12 @@ class Drawflow extends React.Component {
             />
             }
             <div className="drawflow-wrapper">
-                <div className="drawflow-node-list">
-                    <div className="drawflow-node-list-search">
-                        <input
-                            type="text"
-                            placeholder="space: and"
-                            onChange={this.onChangeSearchWord}
-                        />
-                        {this.props.infinityScroll && <button>검색</button>}
-                    </div>
-                    <div className="drawflow-node-list-flex">
-                        {this.props.type === LIST_TYPE.FILTER?
-                            <FilterList
-                                filterList={this.props.dataObj.list}
-                                editLock={this.state.editLock}
-                                onDragStart={this.onDragStart}
-                                isIncludeAndSearch={this.isIncludeAndSearch}
-                            /> :
-                            this.props.type === LIST_TYPE.RULE?
-                            <RuleList
-                                single={this.props.dataObj[RULES.SINGLE]}
-                                threshold={this.props.dataObj[RULES.THRESHOLD]}
-                                editLock={this.state.editLock}
-                                onDragStart={this.onDragStart}
-                                isIncludeAndSearch={this.isIncludeAndSearch}
-                            /> :
-                            null
-                        }
-                    </div>
-                </div>
                 <div className="drawflow-main">
                     <div
                         id="drawflow"
                         className="parent-drawflow"
-                        onMouseDown={e => {
-                            if(e.target.id !== "drawflow" && !e.target.classList.contains("drawflow")) return;
-                            this.setState({
-                                config: {
-                                    ...this.state.config,
-                                    canvasDrag: true,
-                                }
-                            });
-                            this.unSelect(e);
-                        }}
-                        onMouseUp={e => {
-                            let obj = {
-                                newPathDirection: null,
-                                config: {
-                                    ...this.state.config,
-                                    drag: false,
-                                    canvasDrag: false,
-                                }
-                            }
-                            const { select } = this.state;
-                            if(select && select.classList.contains("output")) {
-                                obj.select = null;
-                            }
-                            this.setState(obj);
-                        }}
+                        onMouseDown={this.onMouseDownCanvas}
+                        onMouseUp={this.onMouseUpCanvas}
                         onMouseMove={this.onMouseMoveCanvas}
                         onDrop={this.drop}
                         onDragOver={e => {e.preventDefault()}}
@@ -817,27 +737,20 @@ class Drawflow extends React.Component {
                             importJson={this.importJson}
                             exportJson={this.exportJson}
                             clear={this.clear}
-                            editLock={this.state.editLock}
-                            setEditorMode={this.canvasLock}
+                            editLock={this.props.editLock}
+                            setEditorMode={this.props.setEditLock}
                         />
-                        <DrawflowZoomArea
-                            zoomIn={this.zoom.in}
-                            zoomOut={this.zoom.out}
-                            zoomReset={this.zoom.reset}
-                        />
+                        {/* deactive */}
+                        {/* <DrawflowZoomArea
+                            zoomIn={this.zoom(true)}
+                            zoomOut={this.zoom(false)}
+                            zoomReset={this.zoom(null)}
+                        /> */}
                         <div
                             className="drawflow"
                             style={{
                                 transform: `translate(${this.state.config.canvasTranslate.x}px, ${this.state.config.canvasTranslate.y}px) scale(${this.state.config.zoom.value})`
                             }}
-                            // onMouseUp={e => {}}
-                            // onMouseMove={e => {}}
-                            // onMouseDown={e => {}}
-                            // onContextMenu={e => {}}
-                            // onKeyDown={e => {}}
-                            // onWheel={e => {}}
-                            // onInput={e => {}}
-                            // onDoubleClick={e => {}}
                         >
                             {Object.values(this.state.drawflow).map((node, idx) => 
                             <DrawflowNodeBlock
@@ -845,7 +758,7 @@ class Drawflow extends React.Component {
                                 zoom={this.state.config.zoom.value}
                                 NodeContent={Nodes[node.type]}
                                 params={node}
-                                editLock={this.state.editLock}
+                                editLock={this.props.editLock}
                                 ports={this.state.ports}
                                 pushPorts={this.pushPorts}
                                 showButton={this.state.showButton}

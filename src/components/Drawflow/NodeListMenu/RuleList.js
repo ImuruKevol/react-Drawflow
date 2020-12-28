@@ -3,18 +3,18 @@ import MenuCommonBlock from "./MenuCommonBlock";
 import { LIST_TYPE, NODE_MAPPING, RULES } from "../../../common/Enum";
 
 const RuleList = (props) => {
-    // TODO : 싱글톤 성능에 따라 isIncludeAndSearch 삭제
     const { single, threshold, editLock, onDragStart, isIncludeAndSearch } = props;
     return (
         <>
         <div className="drawflow-node-list-category-wrap">
             <div className="drawflow-node-list-category">Single</div>
             <div className="drawflow-node-list-wrap">
-                {single.list.map((item, idx) => {
+                {single.list.slice(0, 3000).map((item, idx) => {
                     const label = `[${10001 + idx}] ${item.name}`;
                     return (
                     isIncludeAndSearch(label) &&
                     <MenuCommonBlock
+                        key={"drawflow-sidemenu-block-single-" + idx}
                         label={label}
                         nodeType={NODE_MAPPING[LIST_TYPE.RULE]}
                         idx={idx}
@@ -28,11 +28,12 @@ const RuleList = (props) => {
         <div className="drawflow-node-list-category-wrap">
             <div className="drawflow-node-list-category">Threshold</div>
             <div className="drawflow-node-list-wrap">
-                {threshold.list.map((item, idx) => {
+                {threshold.list.slice(0, 3000).map((item, idx) => {
                     const label = `[${10001 + idx}] ${item.name}`;
                     return (
                     isIncludeAndSearch(label) &&
                     <MenuCommonBlock
+                        key={"drawflow-sidemenu-block-threshold-" + idx}
                         label={`[${50001 + idx}] ${item.name}`}
                         nodeType={NODE_MAPPING[LIST_TYPE.RULE]}
                         idx={idx}

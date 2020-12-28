@@ -14,6 +14,7 @@ const FilterList = (props) => {
             return (
             isIncludeAndSearch(label) &&
             <MenuCommonBlock
+                key={"drawflow-sidemenu-block-" + idx}
                 label={label}
                 nodeType={NODE_MAPPING[LIST_TYPE.FILTER]}
                 idx={idx}

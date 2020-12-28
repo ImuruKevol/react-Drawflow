@@ -1,7 +1,8 @@
 :root {
   --border-color: #cacaca;
-  --background-color: #ffffff;
-  --background-box-title: #f7f7f7;
+  --background-color: #282A36;
+  --background-plaid-color: #2F323D;
+  --sidemenu-width: 235px;
 }
 
 html, body {
@@ -13,28 +14,14 @@ html, body {
   font-family: 'Roboto', sans-serif;
 }
 
-header h2 {
-  margin: 0px;
-  line-height: 66px;
-}
-
 button {
   cursor: pointer;
 }
 
-.drawflow-container {
-  height: 100%;
-}
-
-.drawflow-wrapper {
-  width: 100%;
-  height: calc(100% - 67px);
-  display: flex;
-}
-
 .drawflow-node-list {
+  display: inline-block;
   overflow: auto;
-  width: 235px;
+  width: var(--sidemenu-width);
   height: 100%;
   border-right: 1px solid var(--border-color);
 }
@@ -67,82 +54,19 @@ button {
   padding-top: 30px;
 }
 
-.drawflow-node-block {
-  line-height: 35px;
-  border-bottom: 1px solid var(--border-color);
-  padding: 0 5px;
-  cursor: move;
-  user-select: none;
+.drawflow-container {
+  display: inline-block;
+  width: calc(100% - var(--sidemenu-width));
+  height: 100%;
 }
 
-.drawflow-additional {
-  float: right;
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  padding: 5px 10px;
-  background-color: #ddd;
-  font-weight: bold;
-  z-index: 10;
-}
-
-.drawflow-additional .drawflow-additional-button {
-  background-color: #333;
-  color: #fff;
-  border-radius: 4px;
-}
-
-.drawflow-zoom {
-  float: right;
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  padding: 5px 10px;
-  background-color: #ddd;
-  font-weight: bold;
-  z-index: 10;
-}
-
-.drawflow-zoom-button {
-  background-color: #333;
-  color: #fff;
-  border-radius: 4px;
-  padding: 3px 10px;
+.drawflow-wrapper {
+  height: 100%;
+  display: flex;
 }
 
 .drawflow-main {
   width: 100%;
-}
-
-#drawflow {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background: var(--background-color);
-  background-size: 25px 25px;
-  background-image:
-   linear-gradient(to right, #f1f1f1 1px, transparent 1px),
-   linear-gradient(to bottom, #f1f1f1 1px, transparent 1px);
-}
-
-.drawflow-node-block-common,
-.drawflow-node-block-round {
-  display: inline-block;
-  padding: 10px 15px;
-  position: absolute;
-  border: 1px solid black;
-  display: flex;
-  align-items: center;
-  z-index: 20;
-}
-
-.drawflow-node-block-common {
-  background-color: lightgray;
-}
-
-.drawflow-node-block-round {
-  border-radius: 50%;
-  background-color: lightcyan;
 }
 
 .drawflow-main #drawflow .drawflow .inputs .input,
@@ -180,6 +104,27 @@ button {
   stroke: red;
 }
 
+#drawflow {
+  display: flex;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--background-color);
+  background-size: 25px 25px;
+  background-image:
+    linear-gradient(to right, var(--background-plaid-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--background-plaid-color) 1px, transparent 1px);
+  outline:none;
+}
+
+.drawflow {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  user-select: none;
+}
+
 .drawflow .drawflow-node-block-common.select,
 .drawflow .drawflow-node-block-common .select {
   -webkit-box-shadow: 0 2px 15px 2px var(--border-color);
@@ -192,25 +137,6 @@ button {
   r: 7;
   fill: red;
   z-index: 30;
-}
-
-/* .drawflow-node-content {
-
-} */
-
-.parent-drawflow {
-  display: flex;
-  overflow: hidden;
-  touch-action: none;
-  outline:none;
-}
-
-.drawflow {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  user-select: none;
-
 }
 
 .drawflow .parent-node {
@@ -263,6 +189,79 @@ button {
   stroke-width: 5px;
   stroke: steelblue;
 }
+
+.drawflow-node-block {
+  line-height: 35px;
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 5px;
+  cursor: move;
+  user-select: none;
+}
+
+.drawflow-additional {
+  float: right;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  background-color: #ddd;
+  font-weight: bold;
+  z-index: 10;
+}
+
+.drawflow-additional .drawflow-additional-button {
+  background-color: #333;
+  color: #fff;
+  border-radius: 4px;
+}
+
+.drawflow-zoom {
+  float: right;
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  background-color: #ddd;
+  font-weight: bold;
+  z-index: 10;
+}
+
+.drawflow-zoom-button {
+  background-color: #333;
+  color: #fff;
+  border-radius: 4px;
+  padding: 3px 10px;
+}
+
+.drawflow-node-block-common,
+.drawflow-node-block-round {
+  display: inline-block;
+  padding: 10px 15px;
+  position: absolute;
+  border: 1px solid black;
+  display: flex;
+  align-items: center;
+  z-index: 20;
+}
+
+.drawflow-node-block-common {
+  background-color: lightgray;
+}
+
+.drawflow-node-block-round {
+  border-radius: 50%;
+  background-color: lightcyan;
+}
+
+.drawflow-node-block span {
+  display: inline-block;
+  width: 100%;
+  overflow: hidden;
+  word-break: break-all;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 
 .drawflow-delete {
   position: absolute;
@@ -334,13 +333,4 @@ button {
 .drawflow-modal-header {
   text-align: center;
   margin-bottom: 10px;
-}
-
-.drawflow-node-block span {
-  display: inline-block;
-  width: 100%;
-  overflow: hidden;
-  word-break: break-all;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }

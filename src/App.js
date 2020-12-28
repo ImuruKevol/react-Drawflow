@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Drawflow from './components/Drawflow/Drawflow';
 import { LIST_TYPE, PAGE, RULES, RULES_LIST_TYPE } from './common/Enum';
+import FilterList from "./components/Drawflow/NodeListMenu/FilterList";
+import RuleList from "./components/Drawflow/NodeListMenu/RuleList";
 import mock from "./components/Drawflow/Mock";
 import './App.css';
 
@@ -9,9 +11,9 @@ function App() {
   const current = window.location.pathname.slice(1).length === 0?RULES.SINGLE:window.location.pathname.slice(1);
   //* original data list
   const [dataObj, setDataObj] = useState(null);
-  //* cache; cacheing dataObj.list
-  // const [cache, setCache] = useState([]);
   const [canvasData, setCanvasData] = useState(null);
+  const [editLock, setEditLock] = useState(false);
+  const [searchWord, setSearchWord] = useState("");
 
   useEffect(() => {
     const getInitData = async () => {
@@ -39,35 +41,62 @@ function App() {
     })
   }, []);
 
-  const clearCurrent = () => {
-    setDataObj(null);
+  const onDragStart = (e, nodeType, idx, menuType) => {
+    e.dataTransfer.setData("nodeType", nodeType);
+    e.dataTransfer.setData("index", idx);
+    if(menuType) e.dataTransfer.setData("menuType", menuType);
   }
 
-  // const getDataByScroll = async (searchWord = "") => {
-  //   //* get next data
-  //   let result = await mock.getFilters(PAGE[current], searchWord);
-    
-  //   setDataObj({
-  //     ...dataObj,
-  //     list: [...dataObj.list, ...result.list],
-  //   });
-  // }
+  const isIncludeAndSearch = (target) => {
+    const arr = searchWord.toLowerCase().split(" ").filter(item => item.length > 0);
+    return arr.filter(word => target.toLowerCase().includes(word)).length === arr.length;
+}
 
-  const isInfinityScroll = RULES_LIST_TYPE[current] !== LIST_TYPE.FILTER;
+  const useSearchButton = RULES_LIST_TYPE[current] !== LIST_TYPE.FILTER;
 
   return (
     <div className="App">
-      {/* {current === LIST_TYPE.RULE && <button onClick={() => {setCurrent(LIST_TYPE.FILTER)}}>Fields</button>} */}
-      {/* {current === LIST_TYPE.FILTER && <button onClick={() => {setCurrent(LIST_TYPE.RULE)}}>Rules</button>} */}
-      {canvasData && dataObj && 
+      {canvasData && dataObj &&
+      <>
+      <div className="drawflow-node-list">
+        <div className="drawflow-node-list-search">
+            <input
+                type="text"
+                placeholder="space: and"
+                onChange={e => {setSearchWord(e.target.value)}}
+            />
+            {useSearchButton && <button>검색</button>}
+        </div>
+        <div className="drawflow-node-list-flex">
+          {RULES_LIST_TYPE[current] === LIST_TYPE.FILTER?
+            <FilterList
+              filterList={dataObj.list}
+              editLock={editLock}
+              onDragStart={onDragStart}
+              isIncludeAndSearch={isIncludeAndSearch}
+            /> :
+            RULES_LIST_TYPE[current] === LIST_TYPE.RULE?
+            <RuleList
+              single={dataObj[RULES.SINGLE]}
+              threshold={dataObj[RULES.THRESHOLD]}
+              editLock={editLock}
+              onDragStart={onDragStart}
+              isIncludeAndSearch={isIncludeAndSearch}
+            /> :
+            null
+          }
+        </div>
+      </div>
       <Drawflow
         type={RULES_LIST_TYPE[current]}
         dataObj={dataObj}
         canvasData={canvasData}
-        // getDataByScroll={getDataByScroll}
-        clearCurrent={clearCurrent}
-        infinityScroll={isInfinityScroll}
-      />}
+        useSearchButton={useSearchButton}
+        editLock={editLock}
+        setEditLock={setEditLock}
+        setSearchWord={setSearchWord}
+      />
+    </>}
     </div>
   );
 }

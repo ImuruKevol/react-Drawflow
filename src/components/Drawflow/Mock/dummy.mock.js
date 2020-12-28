@@ -14,18 +14,6 @@ export default () => {
             "in": 1,
             "out": 1
           },
-          "connections": {
-            "inputs": {
-              "input_1": {
-                "connections": []
-              }
-            },
-            "outputs": {
-              "output_1": {
-                "connections": []
-              }
-            }
-          },
           "pos": {
             "x": 43.3125,
             "y": 14
@@ -42,18 +30,6 @@ export default () => {
           "port": {
             "in": 1,
             "out": 1
-          },
-          "connections": {
-            "inputs": {
-              "input_1": {
-                "connections": []
-              }
-            },
-            "outputs": {
-              "output_1": {
-                "connections": []
-              }
-            }
           },
           "pos": {
             "x": 469.3125,
@@ -72,18 +48,6 @@ export default () => {
             "in": 1,
             "out": 1
           },
-          "connections": {
-            "inputs": {
-              "input_1": {
-                "connections": []
-              }
-            },
-            "outputs": {
-              "output_1": {
-                "connections": []
-              }
-            }
-          },
           "pos": {
             "x": 436.8125,
             "y": 92
@@ -100,18 +64,6 @@ export default () => {
           "port": {
             "in": 1,
             "out": 1
-          },
-          "connections": {
-            "inputs": {
-              "input_1": {
-                "connections": []
-              }
-            },
-            "outputs": {
-              "output_1": {
-                "connections": []
-              }
-            }
           },
           "pos": {
             "x": 36.3125,

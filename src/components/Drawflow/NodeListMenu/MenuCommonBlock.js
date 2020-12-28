@@ -6,7 +6,6 @@ const MenuCommonBlock = (props) => {
     return (
     <div
         className="drawflow-node-block"
-        key={"drawflow-node-" + idx}
         draggable={!editLock}
         onDragStart={e => {
             onDragStart(e, nodeType, idx, menuType);

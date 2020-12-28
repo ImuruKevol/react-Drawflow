@@ -13,12 +13,12 @@ const isInludeAndSearch = (searchWord, target) => {
     return arr.filter(word => target.toLowerCase().includes(word)).length === arr.length;
 }
 
-const makeRandomNames = (length, searchWord) => {
+const makeRandomNames = (length, searchWord, max = 15, min = 5) => {
     const result = [];
     const map = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     for(let j=0;j<length;j++) {
         let word = "";
-        for (let i=0;i<Math.floor(Math.random() * 15 + 5);i++) {
+        for (let i=0;i<Math.floor(Math.random() * (max - min) + min);i++) {
            word += map.charAt(Math.floor(Math.random() * map.length));
         }
         if(isInludeAndSearch(searchWord, word)) {

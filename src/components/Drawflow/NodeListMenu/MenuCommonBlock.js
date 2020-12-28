@@ -1,15 +1,13 @@
 import React from "react";
 
 const MenuCommonBlock = (props) => {
-    const { label, nodeType, idx, menuType, editLock, onDragStart } = props;
+    const { label, editLock, onDragStart } = props;
 
     return (
     <div
         className="drawflow-node-block"
         draggable={!editLock}
-        onDragStart={e => {
-            onDragStart(e, nodeType, idx, menuType);
-        }}
+        onDragStart={onDragStart}
     >
         <span title={label}>{label}</span>
     </div>

@@ -16,10 +16,13 @@ const FilterList = (props) => {
             <MenuCommonBlock
                 key={"drawflow-sidemenu-block-" + idx}
                 label={label}
-                nodeType={NODE_MAPPING[LIST_TYPE.FILTER]}
-                idx={idx}
                 editLock={editLock}
-                onDragStart={onDragStart}
+                onDragStart={e => {
+                    onDragStart(e, {
+                        nodeType: NODE_MAPPING[LIST_TYPE.FILTER],
+                        index: idx,
+                    });
+                }}
             />);
         })}
     </div>

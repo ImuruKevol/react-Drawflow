@@ -6,7 +6,7 @@ import Connection from "./Connection";
 import DrawflowModal from "./Modal";
 import Nodes from "./Nodes";
 import handler from "./drawflowHandler";
-import { MODAL_TYPE, MODAL_LABEL, LIST_TYPE, NODE_MAPPING, RULES } from "../../common/Enum";
+import { MODAL_TYPE, MODAL_LABEL, LIST_TYPE } from "../../common/Enum";
 import "./style/drawflow.css";
 
 class Drawflow extends React.Component {
@@ -86,12 +86,6 @@ class Drawflow extends React.Component {
         if(this.props.editLock) return;
         const pos = handler.getPos(x, y, config.zoom.value);
         this.addNode(nodeType, {in: 1, out: 1}, pos, this.getDataByIndex[type](idx, menuType));
-    }
-
-    onDragStart = (e, nodeType, idx, menuType) => {
-        e.dataTransfer.setData("nodeType", nodeType);
-        e.dataTransfer.setData("index", idx);
-        if(menuType) e.dataTransfer.setData("menuType", menuType);
     }
 
     drop = (e) => {

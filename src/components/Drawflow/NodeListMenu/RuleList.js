@@ -16,11 +16,14 @@ const RuleList = (props) => {
                     <MenuCommonBlock
                         key={"drawflow-sidemenu-block-single-" + idx}
                         label={label}
-                        nodeType={NODE_MAPPING[LIST_TYPE.RULE]}
-                        idx={idx}
-                        menuType={RULES.SINGLE}
                         editLock={editLock}
-                        onDragStart={onDragStart}
+                        onDragStart={e => {
+                            onDragStart(e, {
+                                nodeType: NODE_MAPPING[LIST_TYPE.RULE],
+                                index: idx,
+                                menuType: RULES.SINGLE,
+                            });
+                        }}
                     />);
                 })}
             </div>
@@ -35,11 +38,14 @@ const RuleList = (props) => {
                     <MenuCommonBlock
                         key={"drawflow-sidemenu-block-threshold-" + idx}
                         label={`[${50001 + idx}] ${item.name}`}
-                        nodeType={NODE_MAPPING[LIST_TYPE.RULE]}
-                        idx={idx}
-                        menuType={RULES.THRESHOLD}
                         editLock={editLock}
-                        onDragStart={onDragStart}
+                        onDragStart={e => {
+                            onDragStart(e, {
+                                nodeType: NODE_MAPPING[LIST_TYPE.RULE],
+                                index: idx,
+                                menuType: RULES.THRESHOLD,
+                            });
+                        }}
                     />);
                 })}
             </div>

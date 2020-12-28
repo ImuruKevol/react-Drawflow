@@ -41,10 +41,10 @@ function App() {
     })
   }, []);
 
-  const onDragStart = (e, nodeType, idx, menuType) => {
-    e.dataTransfer.setData("nodeType", nodeType);
-    e.dataTransfer.setData("index", idx);
-    if(menuType) e.dataTransfer.setData("menuType", menuType);
+  const onDragStart = (e, data) => {
+    Object.entries(data).forEach(([key, value]) => {
+      e.dataTransfer.setData(key, value);
+    });
   }
 
   const isIncludeAndSearch = (target) => {

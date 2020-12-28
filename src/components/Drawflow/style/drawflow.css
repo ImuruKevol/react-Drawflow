@@ -129,6 +129,7 @@ button {
 .drawflow-node-block-round {
   display: inline-block;
   padding: 10px 15px;
+  position: absolute;
   border: 1px solid black;
   display: flex;
   align-items: center;
@@ -193,9 +194,9 @@ button {
   z-index: 30;
 }
 
-.drawflow-node-content {
+/* .drawflow-node-content {
 
-}
+} */
 
 .parent-drawflow {
   display: flex;

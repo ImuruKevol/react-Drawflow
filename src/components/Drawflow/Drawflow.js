@@ -38,7 +38,7 @@ class Drawflow extends React.Component {
             selectId: null,                 // TODO: move select(new object state)
             selectPoint: null,              // TODO: move select(new object state)
             showButton: null,
-            tmpPath: null,
+            newPathDirection: null,
             modalType: null,
             searchWord: "",
         }
@@ -462,36 +462,15 @@ class Drawflow extends React.Component {
         const { canvasDrag } = this.state;
         if(canvasDrag) this.moveCanvas(e);
 
-        const { select, config, editLock } = this.state;
+        const { select } = this.state;
         if(select && select.classList.contains("output")) {
             const { clientX, clientY } = e;
-            const idx = handler.findIndexByElement(select);
-            const { ports, selectId } = this.state;
-            const startKey = `${selectId}_out_${idx + 1}`;
-
-            if(!ports[startKey]) return null;
-
-            const start = {
-                x: ports[startKey].x,
-                y: ports[startKey].y,
-            }
-            const end = handler.getPos(clientX, clientY, config.zoom.value);
-
-            const d = handler.createCurvature(start, end, "openclose");
-            const path = (
-                <Connection.Path
-                    editLock={editLock}
-                    zoom={config.zoom.value}
-                    start={start}
-                    end={end}
-                    d={d}
-                    select={this.select}
-                    setConnections={this.setConnections}
-                />
-            );
 
             this.setState({
-                tmpPath: path,
+                newPathDirection: {
+                    clientX,
+                    clientY,
+                },
             });
         }
         this.setPosWithCursorOut(e);
@@ -623,6 +602,40 @@ class Drawflow extends React.Component {
         });
     }
 
+    newPath = () => {
+        const { select, config, ports, selectId, editLock, newPathDirection } = this.state;
+        const idx = handler.findIndexByElement(select);
+        const startKey = `${selectId}_out_${idx + 1}`;
+
+        if(!ports[startKey]) return null;
+
+        const start = {
+            x: ports[startKey].x,
+            y: ports[startKey].y,
+        }
+        const zoom = config.zoom.value;
+        const { clientX, clientY } = newPathDirection;
+        const end = handler.getPos(clientX, clientY, zoom);
+        const d = handler.createCurvature(start, end, "openclose");
+
+        return (
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="drawflow-connection"
+            >
+                <Connection.Path
+                    editLock={editLock}
+                    zoom={zoom}
+                    start={start}
+                    end={end}
+                    d={d}
+                    select={this.select}
+                    setConnections={this.setConnections}
+                />
+            </svg>
+        );
+    }
+
 /* Life Cycle Function Start */
     componentDidMount() {
         if(this.props.canvasData) {
@@ -685,7 +698,7 @@ class Drawflow extends React.Component {
             selectId: null,
             selectPoint: null,
             showButton: null,
-            tmpPath: null,
+            newPathDirection: null,
             modalType: null,
         });
     }
@@ -830,7 +843,7 @@ class Drawflow extends React.Component {
                         }}
                         onMouseUp={e => {
                             let obj = {
-                                tmpPath: null,
+                                newPathDirection: null,
                                 canvasDrag: false,
                                 drag: false,
                             }
@@ -926,14 +939,7 @@ class Drawflow extends React.Component {
                                 </>
                                 );
                             })}
-                            {this.state.tmpPath &&
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="drawflow-connection"
-                                >
-                                    {this.state.tmpPath}
-                                </svg>
-                            }
+                            {this.state.newPathDirection && this.newPath()}
                         </div>
                     </div>
                 </div>

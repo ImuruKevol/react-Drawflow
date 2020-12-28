@@ -101,10 +101,9 @@ const DrawflowNodeBlock = ({
             ref={ref}
             className={`drawflow-node-block-${params.type.replace(/\s/g, "").toLowerCase()}`}
             style={{
-                position: "absolute",
                 top: params.pos.y + "px",
                 left: params.pos.x + "px",
-                cursor: editLock?"auto": "move"
+                cursor: editLock?"auto": "move",
             }}
             onMouseDown={e => {
                 if(e.currentTarget.classList.contains(`drawflow-node-block-${params.type.replace(/\s/g, "").toLowerCase()}`)) {

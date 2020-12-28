@@ -1,4 +1,3 @@
-import { LIST_TYPE, RULES } from "../../../common/Enum";
 import getDummy from "./dummy.mock";
 import getFilters from "./fields.mock";
 import { 

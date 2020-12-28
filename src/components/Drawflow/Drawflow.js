@@ -8,15 +8,18 @@ import Nodes from "./Nodes";
 import handler from "./drawflowHandler";
 import { MODAL_TYPE, MODAL_LABEL, LIST_TYPE, NODE_MAPPING, RULES } from "../../common/Enum";
 import "./style/drawflow.css";
+import FilterList from "./NodeListMenu/FilterList";
+import RuleList from "./NodeListMenu/RuleList";
 
 class Drawflow extends React.Component {
     constructor () {
         super();
         this.state = {
             nodeId: 1,
-            drag: false,                // TODO: move config
-            canvasDrag: false,          // TODO: move config
             config: {
+                drag: false,
+                canvasDrag: false,
+                connectionsLabelEnable: false,
                 canvasTranslate: {
                     x: 0,
                     y: 0,
@@ -30,10 +33,9 @@ class Drawflow extends React.Component {
             },
             drawflow: {},
             connections: {},
-            connectionsLabelEnable: false,  // TODO: move config
             connectionsLabel: {},
             ports: {},
-            editLock: false,                // TODO: move config
+            editLock: false,
             select: null,                   // TODO: move select(new object state)
             selectId: null,                 // TODO: move select(new object state)
             selectPoint: null,              // TODO: move select(new object state)
@@ -107,7 +109,7 @@ class Drawflow extends React.Component {
         this.addNode(nodeType, {in: 1, out: 1}, pos, this.getDataByIndex[type](idx, menuType));
     }
 
-    drag = (e, nodeType, idx, menuType) => {
+    onDragStart = (e, nodeType, idx, menuType) => {
         e.dataTransfer.setData("nodeType", nodeType);
         e.dataTransfer.setData("index", idx);
         if(menuType) e.dataTransfer.setData("menuType", menuType);
@@ -123,9 +125,13 @@ class Drawflow extends React.Component {
 
     unSelect = (e) => {
         e.stopPropagation();
-        if(this.state.select) this.state.select.classList.remove("select");
+        const { select, config } = this.state;
+        if(select) select.classList.remove("select");
         this.setState({
-            drag: false,
+            config: {
+                ...config,
+                drag: false,
+            },
             select: null,
             selectId: null,
             selectPoint: null,
@@ -135,7 +141,7 @@ class Drawflow extends React.Component {
 
     select = (e, selectInfo) => {
         e.stopPropagation();
-        const { select } = this.state;
+        const { config, select } = this.state;
         if(select) select.classList.remove("select");
         let target = e.currentTarget;
         const isPort = e.target.classList.contains("input") || e.target.classList.contains("output");
@@ -144,7 +150,10 @@ class Drawflow extends React.Component {
             target.classList.add("select");
         if(isPort) target = e.target;
         this.setState({
-            drag: isPort? false : true,
+            config: {
+                ...config,
+                drag: isPort? false : true,
+            },
             select: target,
             selectId: selectInfo && !selectInfo.svgKey? selectInfo : null,
             selectPoint: selectInfo && selectInfo.svgKey? selectInfo : null,
@@ -152,8 +161,8 @@ class Drawflow extends React.Component {
     }
 
     movePoint = (e, svgKey, i) => {
-        const { drag, select } = this.state;
-        if(!drag) return;
+        const { config, select } = this.state;
+        if(!config.drag) return;
         if(e.target !== select) return;
         const { movementX, movementY } = e;
         if(movementX === 0 && movementY === 0) return;
@@ -315,8 +324,8 @@ class Drawflow extends React.Component {
     }
 
     moveNode = (e, nodeId) => {
-        const { drag, select } = this.state;
-        if(!drag) return;
+        const { config, select } = this.state;
+        if(!config.drag) return;
         if(e.currentTarget !== select) return;
         const { movementX, movementY } = e;
         if(movementX === 0 && movementY === 0) return;
@@ -328,9 +337,9 @@ class Drawflow extends React.Component {
     }
 
     setPosWithCursorOut = (e) => {
-        const { drag, selectId, selectPoint, config} = this.state;
+        const { config, selectId, selectPoint } = this.state;
         //* typeof selectId === string -> path
-        const exitCond = (!this.state.select || !drag) || (!selectId && !selectPoint) || ((typeof selectId) === (typeof ""));
+        const exitCond = (!this.state.select || !config.drag) || (!selectId && !selectPoint) || ((typeof selectId) === (typeof ""));
         if(exitCond) return;
 
         const mousePos = handler.getPos(e.clientX, e.clientY, config.zoom.value);
@@ -459,8 +468,8 @@ class Drawflow extends React.Component {
     }
 
     onMouseMoveCanvas = (e) => {
-        const { canvasDrag } = this.state;
-        if(canvasDrag) this.moveCanvas(e);
+        const { config } = this.state;
+        if(config.canvasDrag) this.moveCanvas(e);
 
         const { select } = this.state;
         if(select && select.classList.contains("output")) {
@@ -488,92 +497,15 @@ class Drawflow extends React.Component {
         }
     }
 
-    isInludeAndSearch = (target) => {
+    isIncludeAndSearch = (target) => {
         const { searchWord } = this.state;
-        // const arr = this.searchWord.toLowerCase().split(" ").filter(item => item.length > 0);
         const arr = searchWord.toLowerCase().split(" ").filter(item => item.length > 0);
         return arr.filter(word => target.toLowerCase().includes(word)).length === arr.length;
     }
-    
-    // TODO : 파일로 분리
-    NodeListMenuComponent = (label, nodeType, idx, menuType = undefined) => {
-        const style = this.isInludeAndSearch(label)?{}:{display: "none"};
-        return (
-            <div
-                className="drawflow-node-block"
-                style={style}
-                key={"drawflow-node-" + idx}
-                draggable={!this.state.editLock}
-                onDragStart={e => {
-                    this.drag(e, nodeType, idx, menuType);
-                }}
-            >
-                <span title={label}>{label}</span>
-            </div>
-        );
-    }
-
-    onScrollNodeList = e => {
-        // TODO backend와 로직 정리 후 추가
-        // if(!this.props.infinityScroll) return;
-        
-        // const { searchWord } = this.state;
-        // const { scrollHeight, scrollTop, clientHeight } = e.target;
-        // const scroll = scrollHeight - scrollTop;
-        // if(scroll === clientHeight) {
-        //     this.props.getDataByScroll();
-        // }
-    }
-
-    // TODO : 파일로 분리
-    NodeListMenu = {
-        [LIST_TYPE.FILTER]: () => {
-            const { dataObj } = this.props;
-            if(!dataObj) return;
-            const { list } = dataObj;
-            if(!list) return <></>;
-            return (
-            <div
-                className="drawflow-node-list-wrap"
-                onScroll={this.onScrollNodeList}
-            >
-                {list.map((item, idx) => this.NodeListMenuComponent(`[${item.type.slice(0, 1)}] ${item.name}`, NODE_MAPPING[LIST_TYPE.FILTER], idx))}
-            </div>
-            );
-        },
-
-        // TODO : infinity scroll
-        [LIST_TYPE.RULE]: () => {
-            const { dataObj } = this.props;
-            if(!dataObj) return;
-            const { single, threshold } = dataObj;
-            return (
-            <>
-                <div className="drawflow-node-list-category-wrap">
-                    <div className="drawflow-node-list-category">Single</div>
-                    <div className="drawflow-node-list-wrap">
-                        {single.list.map((item, idx) => this.NodeListMenuComponent(`[${10001 + idx}] ${item.name}`, NODE_MAPPING[LIST_TYPE.RULE], idx, RULES.SINGLE))}
-                    </div>
-                </div>
-                <div className="drawflow-node-list-category-wrap">
-                    <div className="drawflow-node-list-category">Threshold</div>
-                    <div className="drawflow-node-list-wrap">
-                        {threshold.list.map((item, idx) => this.NodeListMenuComponent(`[${50001 + idx}] ${item.name}`, NODE_MAPPING[LIST_TYPE.RULE], idx, RULES.THRESHOLD))}
-                    </div>
-                </div>
-            </>
-            );
-        },
-    }
 
     onChangeSearchWord = e => {
-        // this.props.clearCurrent();
         this.setState({
             searchWord: e.target.value,
-        }, () => {
-            // TODO : LIST_TYPE.RULE
-            // const { searchWord } = this.state;
-            // this.props.getDataByScroll(searchWord);
         });
     }
 
@@ -585,11 +517,14 @@ class Drawflow extends React.Component {
         let obj = {
             connections,
             drawflow: data.nodes,
+            config: {
+                ...this.state.config,
+            }
         };
 
         if(data.connectionsLabel) {
             obj.connectionsLabel = data.connectionsLabel;
-            obj.connectionsLabelEnable = true;
+            obj.config.connectionsLabelEnable = true;
         }
 
         const dataKeys = Object.keys(data.nodes).map(key => key*1).sort();
@@ -657,7 +592,7 @@ class Drawflow extends React.Component {
     }
 
     exportJson = () => {
-        const { drawflow, connections, connectionsLabel, connectionsLabelEnable } = this.state;
+        const { drawflow, connections, connectionsLabel, config } = this.state;
         const nodes = Object.entries(drawflow).reduce((acc, [nodeId, data]) => {
             return {
                 ...acc,
@@ -667,7 +602,7 @@ class Drawflow extends React.Component {
         const exportData = Object.assign({
             nodes,
             connections,
-        }, connectionsLabelEnable?{connectionsLabel}:{});
+        }, config.connectionsLabelEnable?{connectionsLabel}:{});
         if(!navigator.clipboard || !navigator.clipboard.writeText){
             alert("clipboard api를 지원하지 않는 브라우저입니다.");
             return;
@@ -820,14 +755,29 @@ class Drawflow extends React.Component {
                     <div className="drawflow-node-list-search">
                         <input
                             type="text"
-                            // value={this.state.searchWord}
                             placeholder="space: and"
                             onChange={this.onChangeSearchWord}
                         />
                         {this.props.infinityScroll && <button>검색</button>}
                     </div>
                     <div className="drawflow-node-list-flex">
-                        {this.NodeListMenu[this.props.type]()}
+                        {this.props.type === LIST_TYPE.FILTER?
+                            <FilterList
+                                filterList={this.props.dataObj.list}
+                                editLock={this.state.editLock}
+                                onDragStart={this.onDragStart}
+                                isIncludeAndSearch={this.isIncludeAndSearch}
+                            /> :
+                            this.props.type === LIST_TYPE.RULE?
+                            <RuleList
+                                single={this.props.dataObj[RULES.SINGLE]}
+                                threshold={this.props.dataObj[RULES.THRESHOLD]}
+                                editLock={this.state.editLock}
+                                onDragStart={this.onDragStart}
+                                isIncludeAndSearch={this.isIncludeAndSearch}
+                            /> :
+                            null
+                        }
                     </div>
                 </div>
                 <div className="drawflow-main">
@@ -837,15 +787,21 @@ class Drawflow extends React.Component {
                         onMouseDown={e => {
                             if(e.target.id !== "drawflow" && !e.target.classList.contains("drawflow")) return;
                             this.setState({
-                                canvasDrag: true,
+                                config: {
+                                    ...this.state.config,
+                                    canvasDrag: true,
+                                }
                             });
                             this.unSelect(e);
                         }}
                         onMouseUp={e => {
                             let obj = {
                                 newPathDirection: null,
-                                canvasDrag: false,
-                                drag: false,
+                                config: {
+                                    ...this.state.config,
+                                    drag: false,
+                                    canvasDrag: false,
+                                }
                             }
                             const { select } = this.state;
                             if(select && select.classList.contains("output")) {
@@ -908,7 +864,7 @@ class Drawflow extends React.Component {
                             )}
                             {Object.entries(this.state.connections).map(([key, points], idx) => {
                                 // key: fromId_portNum_toId_portNum
-                                const { ports, connectionsLabel, connectionsLabelEnable } = this.state;
+                                const { ports, connectionsLabel, config } = this.state;
                                 const arr = key.split("_");
                                 const startKey = `${arr[0]}_out_${arr[1]}`;
                                 const endKey = `${arr[2]}_in_${arr[3]}`;
@@ -932,7 +888,7 @@ class Drawflow extends React.Component {
                                     >
                                         {this.drawConnections(start, end, points, idx, key)}
                                     </svg>
-                                    {connectionsLabelEnable &&
+                                    {config.connectionsLabelEnable &&
                                     <div>
                                         {this.drawConnectionsLabel([start, ...points, end], connectionsLabel[key])}
                                     </div>}

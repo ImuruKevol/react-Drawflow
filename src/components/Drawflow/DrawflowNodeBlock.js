@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { NODE_BLOCK_TYPE } from "../../common/Enum";
 import handler from "./drawflowHandler";
 
 const DrawflowNodeBlock = ({
@@ -93,6 +94,13 @@ const DrawflowNodeBlock = ({
         }
     }, [refs]);
 
+    useEffect(() => {
+        const isShowModalByCreate = params.type === NODE_BLOCK_TYPE.FILTER;
+        if(params.data.create && isShowModalByCreate) {
+            showModal(params.modalType);
+        }
+    }, [params.data]);
+
     const className = `drawflow-node-block-${params.type.replace(/\s/g, "").toLowerCase()}`;
 
     return (
@@ -137,7 +145,7 @@ const DrawflowNodeBlock = ({
                     display: showButton === params.id?"block":"none"
                 }}
                 className="drawflow-delete"
-                onMouseDown={(e) => {e.stopPropagation(); event.nodeDelete()}}
+                onMouseDown={(e) => {e.stopPropagation(); event.deleteNode()}}
             >X</button>
         </div>
     </>

@@ -61,7 +61,10 @@ class Drawflow extends React.Component {
             id: nodeId,
             type: nodeInfo.nodeType,
             modalType: nodeInfo.modalType,
-            data,
+            data: {
+                ...data,
+                create: true,
+            },
             port,
             pos: {
                 x: pos.x,
@@ -70,6 +73,7 @@ class Drawflow extends React.Component {
         };
         this.setState({
             nodeId: nodeId + 1,
+            selectId: nodeId,
             drawflow: {
                 ...drawflow,
                 [nodeId]: {...params},
@@ -384,9 +388,9 @@ class Drawflow extends React.Component {
         });
     }
 
-    nodeDelete = () => {
+    deleteNode = () => {
         if(this.props.editLock) return;
-        const { connections, drawflow, ports, selectId } = this.state;
+        const { connections, drawflow, ports, select, selectId } = this.state;
         if(!selectId) return;
         let obj = {
             connections: {...connections},
@@ -411,7 +415,9 @@ class Drawflow extends React.Component {
         }, null);
         // 3. find in drawflow
         delete obj.drawflow[selectId];
-        // 4. state clear
+        // 4. remove class "select"
+        if(select) select.classList.remove("select");
+        // 5. state clear
         obj = {
             ...obj,
             select: null,
@@ -496,7 +502,7 @@ class Drawflow extends React.Component {
                 this.pathDelete();
             }
             else {
-                this.nodeDelete();
+                this.deleteNode();
             }
         }
     }
@@ -672,7 +678,7 @@ class Drawflow extends React.Component {
             select: () => {},
             moveNode: () => {},
             createPath: () => {},
-            nodeDelete: () => {},
+            deleteNode: () => {},
         }
         :
         {
@@ -684,7 +690,7 @@ class Drawflow extends React.Component {
                 const startPort = handler.findIndexByElement(select) + 1;
                 this.createPath(e, selectId, startPort, endId, endPort);
             },
-            nodeDelete: this.nodeDelete,
+            deleteNode: this.deleteNode,
         };
 
         return (
@@ -719,7 +725,8 @@ class Drawflow extends React.Component {
                         catch{
                             alert("Is not regular format.");
                         }
-                    }
+                    },
+                    deleteNode: this.deleteNode,
                 }}
             />
             }

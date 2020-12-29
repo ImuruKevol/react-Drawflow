@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const NodeModal = (props) => {
   const { title, close, data, setData } = props;
@@ -9,7 +9,15 @@ const NodeModal = (props) => {
     <div className="drawflow-modal-content">
       <header className="drawflow-modal-header">
           <strong>{title}</strong>
-          <button className="drawflow-modal-close" onClick={close}>X</button>
+          <button
+            className="drawflow-modal-close"
+            onClick={() => {
+              close();
+              if(data.create) {
+                props.deleteNode();
+              }
+            }}
+          >X</button>
       </header>
       <div>
         this is node modal.<br />
@@ -27,12 +35,20 @@ const NodeModal = (props) => {
             />
         </div>
         <button onClick={() => {
-          setData({
+          const obj = {
             ...data,
-            value: value,
-          });
+            value,
+          }
+          delete obj.create;
+          setData(obj);
           close();
         }}>SAVE</button>
+        <button onClick={() => {
+          close();
+          if(data.create) {
+            props.deleteNode();
+          }
+        }}>CANCEL</button>
       </div>
     </div>
   );

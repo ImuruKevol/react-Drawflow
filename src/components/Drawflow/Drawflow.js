@@ -50,11 +50,12 @@ class Drawflow extends React.Component {
      * @param {{x: Number, y: Number }} pos 
      * @param {{}} data 
      */
-    addNode = (nodeType, port, pos, data = {}) => {
+    addNode = (nodeType, port, pos, modalType, data = {}) => {
         const { nodeId, drawflow } = this.state;
         const params = {
             id: nodeId,
             type: nodeType,
+            modalType: modalType,
             data,
             port,
             pos: {
@@ -80,12 +81,12 @@ class Drawflow extends React.Component {
         },
     }
 
-    addNodeToDrawFlow = (nodeType, x, y, idx, menuType) => {
+    addNodeToDrawFlow = (nodeType, x, y, idx, modalType, menuType) => {
         const { type } = this.props;
         const { config } = this.state;
         if(this.props.editLock) return;
         const pos = handler.getPos(x, y, config.zoom.value);
-        this.addNode(nodeType, {in: 1, out: 1}, pos, this.getDataByIndex[type](idx, menuType));
+        this.addNode(nodeType, {in: 1, out: 1}, pos, modalType, this.getDataByIndex[type](idx, menuType));
     }
 
     drop = (e) => {
@@ -93,7 +94,8 @@ class Drawflow extends React.Component {
         const nodeType = e.dataTransfer.getData("nodeType");
         const idx = e.dataTransfer.getData("index");
         const menuType = e.dataTransfer.getData("menuType");
-        this.addNodeToDrawFlow(nodeType, e.clientX, e.clientY, idx, menuType);
+        const modalType = e.dataTransfer.getData("modalType");
+        this.addNodeToDrawFlow(nodeType, e.clientX, e.clientY, idx, modalType, menuType);
     }
 
     unSelect = (e) => {

@@ -3,13 +3,13 @@ import MenuCommonBlock from "./MenuCommonBlock";
 import { LIST_TYPE, NODE_MAPPING } from "../../../common/Enum";
 
 const FilterList = (props) => {
-    const { filterList, editLock, onDragStart, isIncludeAndSearch } = props;
+    const { filterObj, editLock, onDragStart, isIncludeAndSearch } = props;
 
     return (
     <div
         className="drawflow-node-list-wrap"
     >
-        {filterList.map((item, idx) => {
+        {filterObj.list.map((item, idx) => {
             const label = `[${item.type.slice(0, 1)}] ${item.name}`;
             return (
             isIncludeAndSearch(label) &&
@@ -21,6 +21,7 @@ const FilterList = (props) => {
                     onDragStart(e, {
                         nodeType: NODE_MAPPING[LIST_TYPE.FILTER],
                         index: idx,
+                        modalType: filterObj.modalType,
                     });
                 }}
             />);

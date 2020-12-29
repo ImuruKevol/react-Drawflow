@@ -5,6 +5,7 @@ export default () => {
         "1": {
           "id": 1,
           "type": "Common",
+          "modalType": "common",
           "data": {
             "type": "Numeric",
             "name": "HLuF7rwKIuD",
@@ -22,6 +23,7 @@ export default () => {
         "2": {
           "id": 2,
           "type": "Common",
+          "modalType": "common",
           "data": {
             "type": "String",
             "name": "y24mqVYQtD",
@@ -39,6 +41,7 @@ export default () => {
         "3": {
           "id": 3,
           "type": "Common",
+          "modalType": "common",
           "data": {
             "type": "String",
             "name": "y24mqVYQtD",
@@ -56,6 +59,7 @@ export default () => {
         "4": {
           "id": 4,
           "type": "Common",
+          "modalType": "common",
           "data": {
             "type": "String",
             "name": "1qdlCNXqYBsE",

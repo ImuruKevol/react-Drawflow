@@ -118,13 +118,13 @@ const DrawflowNodeBlock = ({
                 e.stopPropagation();
                 setShowButton(params.id);
             }}
+            onDoubleClick={() => {
+                showModal(params.modalType);
+            }}
         >
             {portComponent("in")}
             <div
                 className="drawflow-node-content"
-                onDoubleClick={() => {
-                    showModal(MODAL_TYPE.common);
-                }}
             >
                 <NodeContent
                     {...params}

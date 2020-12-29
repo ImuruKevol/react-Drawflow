@@ -22,6 +22,7 @@ const RuleList = (props) => {
                                 nodeType: NODE_MAPPING[LIST_TYPE.RULE],
                                 index: idx,
                                 menuType: RULES.SINGLE,
+                                modalType: single.modalType
                             });
                         }}
                     />);
@@ -44,6 +45,7 @@ const RuleList = (props) => {
                                 nodeType: NODE_MAPPING[LIST_TYPE.RULE],
                                 index: idx,
                                 menuType: RULES.THRESHOLD,
+                                modalType: threshold.modalType,
                             });
                         }}
                     />);

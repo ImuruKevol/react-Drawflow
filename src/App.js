@@ -70,7 +70,7 @@ function App() {
         <div className="drawflow-node-list-flex">
           {RULES_LIST_TYPE[current] === LIST_TYPE.FILTER?
             <FilterList
-              filterList={dataObj.list}
+              filterObj={dataObj}
               editLock={editLock}
               onDragStart={onDragStart}
               isIncludeAndSearch={isIncludeAndSearch}

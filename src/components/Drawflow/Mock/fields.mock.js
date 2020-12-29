@@ -30,6 +30,7 @@ export default async (number, searchWord = "") => {
             acc.push({
                 type: types[Math.floor(Math.random() * types.length)],
                 name: val,
+                value: makeRandomNames(1, "", 10, 5),
             });
             return acc;
         }, []),

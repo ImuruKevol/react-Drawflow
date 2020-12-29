@@ -26,6 +26,12 @@ const NODE_MAPPING = {
     [LIST_TYPE.RULE]: "Round",
 }
 
+const NODE_BLOCK_TYPE = {
+    FILTER: "filter",
+    SINGLE: "single",
+    THRESHOLD: "threshold",
+}
+
 const PAGE = {
     [RULES.SINGLE]: 200,
     [RULES.THRESHOLD]: 200,
@@ -56,5 +62,6 @@ export {
     MODAL_TYPE,
     MODAL_LABEL,
     NODE_MAPPING,
+    NODE_BLOCK_TYPE,
     PAGE,
 }

@@ -1,6 +1,6 @@
 import React from "react";
 
-const Collector = (props) => {
+const Common = (props) => {
     const { data, setData } = props;
 
     return (<>
@@ -23,4 +23,4 @@ const Collector = (props) => {
     </>);
 }
 
-export default Collector;
+export default Common;

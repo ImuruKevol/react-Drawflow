@@ -50,12 +50,13 @@ class Drawflow extends React.Component {
      * @param {{x: Number, y: Number }} pos 
      * @param {{}} data 
      */
-    addNode = (nodeType, port, pos, modalType, data = {}) => {
+    addNode = (nodeInfo, port, pos, data = {}) => {
         const { nodeId, drawflow } = this.state;
         const params = {
             id: nodeId,
-            type: nodeType,
-            modalType: modalType,
+            blockType: nodeInfo.nodeBlockType,
+            type: nodeInfo.nodeType,
+            modalType: nodeInfo.modalType,
             data,
             port,
             pos: {
@@ -81,21 +82,26 @@ class Drawflow extends React.Component {
         },
     }
 
-    addNodeToDrawFlow = (nodeType, x, y, idx, modalType, menuType) => {
+    addNodeToDrawFlow = (data, x, y) => {
         const { type } = this.props;
         const { config } = this.state;
         if(this.props.editLock) return;
         const pos = handler.getPos(x, y, config.zoom.value);
-        this.addNode(nodeType, {in: 1, out: 1}, pos, modalType, this.getDataByIndex[type](idx, menuType));
+        const nodeInfo = {...data};
+        delete nodeInfo.index;
+        delete nodeInfo.menuType;
+        this.addNode(nodeInfo, {in: 1, out: 1}, pos, this.getDataByIndex[type](data.index, data.menuType));
     }
 
     drop = (e) => {
         e.preventDefault();
-        const nodeType = e.dataTransfer.getData("nodeType");
-        const idx = e.dataTransfer.getData("index");
-        const menuType = e.dataTransfer.getData("menuType");
-        const modalType = e.dataTransfer.getData("modalType");
-        this.addNodeToDrawFlow(nodeType, e.clientX, e.clientY, idx, modalType, menuType);
+        const data = JSON.parse(e.dataTransfer.getData("data"));
+        // const nodeBlockType = e.dataTransfer.getData("nodeBlockType");
+        // const nodeType = e.dataTransfer.getData("nodeType");
+        // const idx = e.dataTransfer.getData("index");
+        // const menuType = e.dataTransfer.getData("menuType");
+        // const modalType = e.dataTransfer.getData("modalType");
+        this.addNodeToDrawFlow(data, e.clientX, e.clientY);
     }
 
     unSelect = (e) => {
@@ -701,6 +707,10 @@ class Drawflow extends React.Component {
             <DrawflowModal
                 type={this.state.modalType}
                 title={MODAL_LABEL[this.state.modalType]}
+                data={this.state.selectId && this.state.drawflow[this.state.selectId].data}
+                setData={() => {
+
+                }}
                 close={() => {
                     this.setState({
                         modalType: null,

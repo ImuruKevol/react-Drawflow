@@ -42,9 +42,10 @@ function App() {
   }, []);
 
   const onDragStart = (e, data) => {
-    Object.entries(data).forEach(([key, value]) => {
-      e.dataTransfer.setData(key, value);
-    });
+    e.dataTransfer.setData("data", JSON.stringify(data));
+    // Object.entries(data).forEach(([key, value]) => {
+    //   e.dataTransfer.setData(key, value);
+    // });
   }
 
   const isIncludeAndSearch = (target) => {

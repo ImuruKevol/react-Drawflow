@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
 import handler from "./drawflowHandler";
-import { MODAL_TYPE } from "../../common/Enum";
 
 const DrawflowNodeBlock = ({
     zoom,

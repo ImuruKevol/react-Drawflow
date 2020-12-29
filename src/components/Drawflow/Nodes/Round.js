@@ -1,8 +1,14 @@
 import React from 'react';
 
 const Round = (props) => {
-    const { data, setData } = props;
-    return (<>{data.name}</>);
+    const { blockType, data, setData } = props;
+
+    return (
+    <>
+        <div><strong>{blockType}</strong></div>
+        {data.name}
+    </>
+    );
 }
 
 export default Round;

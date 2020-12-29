@@ -6,7 +6,7 @@ import Connection from "./Connection";
 import DrawflowModal from "./Modal";
 import Nodes from "./Nodes";
 import handler from "./drawflowHandler";
-import { MODAL_TYPE, MODAL_LABEL, LIST_TYPE } from "../../common/Enum";
+import { MODAL_TYPE, MODAL_LABEL, LIST_TYPE, NODE_BLOCK_TYPE } from "../../common/Enum";
 import "./style/drawflow.css";
 
 class Drawflow extends React.Component {
@@ -41,11 +41,16 @@ class Drawflow extends React.Component {
             modalType: null,
         }
         this.tmpPorts = {};
+        this.NodeComponent = {
+            [NODE_BLOCK_TYPE.FILTER]: Nodes.Common,
+            [NODE_BLOCK_TYPE.SINGLE]: Nodes.Round,
+            [NODE_BLOCK_TYPE.THRESHOLD]: Nodes.Round,
+        }
     }
 
     /**
      * create and add node
-     * @param {String} nodeType
+     * @param {{}} nodeInfo
      * @param {{in: Number, out: Number}} port 
      * @param {{x: Number, y: Number }} pos 
      * @param {{}} data 
@@ -54,7 +59,6 @@ class Drawflow extends React.Component {
         const { nodeId, drawflow } = this.state;
         const params = {
             id: nodeId,
-            blockType: nodeInfo.nodeBlockType,
             type: nodeInfo.nodeType,
             modalType: nodeInfo.modalType,
             data,
@@ -96,11 +100,6 @@ class Drawflow extends React.Component {
     drop = (e) => {
         e.preventDefault();
         const data = JSON.parse(e.dataTransfer.getData("data"));
-        // const nodeBlockType = e.dataTransfer.getData("nodeBlockType");
-        // const nodeType = e.dataTransfer.getData("nodeType");
-        // const idx = e.dataTransfer.getData("index");
-        // const menuType = e.dataTransfer.getData("menuType");
-        // const modalType = e.dataTransfer.getData("modalType");
         this.addNodeToDrawFlow(data, e.clientX, e.clientY);
     }
 
@@ -674,7 +673,6 @@ class Drawflow extends React.Component {
             moveNode: () => {},
             createPath: () => {},
             nodeDelete: () => {},
-            setData: () => {},
         }
         :
         {
@@ -687,18 +685,6 @@ class Drawflow extends React.Component {
                 this.createPath(e, selectId, startPort, endId, endPort);
             },
             nodeDelete: this.nodeDelete,
-            setData: (nodeId, data) => {
-                const { drawflow } = this.state;
-                this.setState({
-                    drawflow: {
-                        ...drawflow,
-                        [nodeId]: {
-                            ...drawflow[nodeId],
-                            data: data,
-                        }
-                    }
-                });
-            },
         };
 
         return (
@@ -708,8 +694,17 @@ class Drawflow extends React.Component {
                 type={this.state.modalType}
                 title={MODAL_LABEL[this.state.modalType]}
                 data={this.state.selectId && this.state.drawflow[this.state.selectId].data}
-                setData={() => {
-
+                setData={(data) => {
+                    const { drawflow, selectId } = this.state;
+                    this.setState({
+                        drawflow: {
+                            ...drawflow,
+                            [selectId]: {
+                                ...drawflow[selectId],
+                                data: data,
+                            }
+                        }
+                    });
                 }}
                 close={() => {
                     this.setState({
@@ -762,7 +757,7 @@ class Drawflow extends React.Component {
                             <DrawflowNodeBlock
                                 key={"drawflow-node-block-" + idx}
                                 zoom={this.state.config.zoom.value}
-                                NodeContent={Nodes[node.type]}
+                                NodeContent={this.NodeComponent[node.type]}
                                 params={node}
                                 editLock={this.props.editLock}
                                 ports={this.state.ports}

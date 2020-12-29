@@ -4,7 +4,7 @@ export default () => {
       "nodes": {
         "1": {
           "id": 1,
-          "type": "Common",
+          "type": "filter",
           "modalType": "common",
           "data": {
             "type": "Numeric",
@@ -22,7 +22,7 @@ export default () => {
         },
         "2": {
           "id": 2,
-          "type": "Common",
+          "type": "filter",
           "modalType": "common",
           "data": {
             "type": "String",
@@ -40,7 +40,7 @@ export default () => {
         },
         "3": {
           "id": 3,
-          "type": "Common",
+          "type": "filter",
           "modalType": "common",
           "data": {
             "type": "String",
@@ -58,7 +58,7 @@ export default () => {
         },
         "4": {
           "id": 4,
-          "type": "Common",
+          "type": "filter",
           "modalType": "common",
           "data": {
             "type": "String",

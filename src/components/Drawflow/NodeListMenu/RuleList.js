@@ -1,6 +1,6 @@
 import React from "react";
 import MenuCommonBlock from "./MenuCommonBlock";
-import { LIST_TYPE, NODE_MAPPING, RULES, NODE_BLOCK_TYPE } from "../../../common/Enum";
+import { RULES, NODE_BLOCK_TYPE } from "../../../common/Enum";
 
 const RuleList = (props) => {
     const { single, threshold, editLock, onDragStart, isIncludeAndSearch } = props;
@@ -19,8 +19,7 @@ const RuleList = (props) => {
                         editLock={editLock}
                         onDragStart={e => {
                             onDragStart(e, {
-                                nodeBlockType: NODE_BLOCK_TYPE.SINGLE,
-                                nodeType: NODE_MAPPING[LIST_TYPE.RULE],
+                                nodeType: NODE_BLOCK_TYPE.SINGLE,
                                 index: idx,
                                 menuType: RULES.SINGLE,
                                 modalType: single.modalType
@@ -43,8 +42,7 @@ const RuleList = (props) => {
                         editLock={editLock}
                         onDragStart={e => {
                             onDragStart(e, {
-                                nodeBlockType: NODE_BLOCK_TYPE.THRESHOLD,
-                                nodeType: NODE_MAPPING[LIST_TYPE.RULE],
+                                nodeType: NODE_BLOCK_TYPE.THRESHOLD,
                                 index: idx,
                                 menuType: RULES.THRESHOLD,
                                 modalType: threshold.modalType,

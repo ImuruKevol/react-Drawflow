@@ -19,13 +19,6 @@ const RULES_LIST_TYPE = {
     [RULES.CORRELATION]: LIST_TYPE.RULE,
 }
 
-const nodeList = Object.keys(Nodes);
-console.debug("Node Category List : ", nodeList);
-const NODE_MAPPING = {
-    [LIST_TYPE.FILTER]: "Common",
-    [LIST_TYPE.RULE]: "Round",
-}
-
 const NODE_BLOCK_TYPE = {
     FILTER: "filter",
     SINGLE: "single",
@@ -61,7 +54,6 @@ export {
     RULES_LIST_TYPE,
     MODAL_TYPE,
     MODAL_LABEL,
-    NODE_MAPPING,
     NODE_BLOCK_TYPE,
     PAGE,
 }

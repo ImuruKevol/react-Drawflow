@@ -1,6 +1,6 @@
 import React from "react";
 import MenuCommonBlock from "./MenuCommonBlock";
-import { LIST_TYPE, NODE_MAPPING, NODE_BLOCK_TYPE } from "../../../common/Enum";
+import { NODE_BLOCK_TYPE } from "../../../common/Enum";
 
 const FilterList = (props) => {
     const { filterObj, editLock, onDragStart, isIncludeAndSearch } = props;
@@ -19,8 +19,7 @@ const FilterList = (props) => {
                 editLock={editLock}
                 onDragStart={e => {
                     onDragStart(e, {
-                        nodeBlockType: NODE_BLOCK_TYPE.FILTER,
-                        nodeType: NODE_MAPPING[LIST_TYPE.FILTER],
+                        nodeType: NODE_BLOCK_TYPE.FILTER,
                         index: idx,
                         modalType: filterObj.modalType,
                     });

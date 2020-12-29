@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 
 const NodeModal = (props) => {
   const { title, close, data, setData } = props;
+  const [value, setValue] = useState("");
   console.log(data)
 
   return (
@@ -13,7 +14,25 @@ const NodeModal = (props) => {
       <div>
         this is node modal.<br />
         Name: {data.name}<br />
-        Value: {data.value}
+        <div>
+            <input
+                type="text"
+                defaultValue={data.value?data.value:""}
+                onKeyDown={e => {
+                    e.stopPropagation();
+                }}
+                onChange={e => {
+                  setValue(e.target.value);
+                }}
+            />
+        </div>
+        <button onClick={() => {
+          setData({
+            ...data,
+            value: value,
+          });
+          close();
+        }}>SAVE</button>
       </div>
     </div>
   );

@@ -93,19 +93,21 @@ const DrawflowNodeBlock = ({
         }
     }, [refs]);
 
+    const className = `drawflow-node-block-${params.type.replace(/\s/g, "").toLowerCase()}`;
+
     return (
     // If you want, change styled component. My case is not supported styled component...
     <>
         <div
             ref={ref}
-            className={`drawflow-node-block-${params.type.replace(/\s/g, "").toLowerCase()}`}
+            className={"drawflow-node-block-default " + className}
             style={{
                 top: params.pos.y + "px",
                 left: params.pos.x + "px",
                 cursor: editLock?"auto": "move",
             }}
             onMouseDown={e => {
-                if(e.currentTarget.classList.contains(`drawflow-node-block-${params.type.replace(/\s/g, "").toLowerCase()}`)) {
+                if(e.currentTarget.classList.contains(className)) {
                     event.select(e, params.id);
                 }
             }}
@@ -127,9 +129,6 @@ const DrawflowNodeBlock = ({
             >
                 <NodeContent
                     {...params}
-                    setData={(data) => {
-                        event.setData(params.id, data);
-                    }}
                 />
             </div>
             {portComponent("out")}

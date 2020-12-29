@@ -2,9 +2,6 @@
 import Common from "./Common";
 import Round from "./Round";
 
-// key is must Camel.
-// and recommand only alphabet.
-// trim(key).toLowerCase() => className
 export default {
     Common,
     Round,

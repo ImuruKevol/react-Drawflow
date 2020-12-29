@@ -125,8 +125,7 @@ button {
   user-select: none;
 }
 
-.drawflow .drawflow-node-block-common.select,
-.drawflow .drawflow-node-block-common .select {
+.drawflow .drawflow-node-block-default.select {
   -webkit-box-shadow: 0 2px 15px 2px var(--border-color);
   box-shadow: 0 2px 15px 2px var(--border-color);
   border: 2px solid blue;
@@ -233,8 +232,7 @@ button {
   padding: 3px 10px;
 }
 
-.drawflow-node-block-common,
-.drawflow-node-block-round {
+.drawflow-node-block-default {
   display: inline-block;
   padding: 10px 15px;
   position: absolute;
@@ -244,11 +242,12 @@ button {
   z-index: 20;
 }
 
-.drawflow-node-block-common {
+.drawflow-node-block-default {
   background-color: lightgray;
 }
 
-.drawflow-node-block-round {
+.drawflow-node-block-single,
+.drawflow-node-block-threshold {
   border-radius: 50%;
   background-color: lightcyan;
 }

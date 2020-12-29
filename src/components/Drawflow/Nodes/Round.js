@@ -1,11 +1,11 @@
 import React from 'react';
 
 const Round = (props) => {
-    const { blockType, data, setData } = props;
+    const { type, data } = props;
 
     return (
     <>
-        <div><strong>{blockType}</strong></div>
+        <div><strong>Type: {type}</strong></div>
         {data.name}
     </>
     );
